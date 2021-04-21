@@ -72,10 +72,33 @@ int get(char* key, char* res){
 };
 
 int del(char* key){
-    int i;
-    for(i=0; i -> *next = NULL; i++ ){
-        if (char* key = keyValKomb *key ){
-            struct keyValKomb;
+    struct keyValKomb *zeiger, *zeiger1;
+
+    /* Ist überhaupt ein Element vorhanden? */
+    if(anfang != NULL) {
+        /* Ist unser 1. Element das von uns gesuchte (wen[])? */
+        if(anfang->key == key) {
+            zeiger=anfang->next;
+            anfang=zeiger;
         }
-    }
-};
+        else {
+            /* Es ist nicht das 1. Element zu löschen. Wir suchen in
+             * der weiteren Kette, ob das zu löschende Element vor-
+             * handen ist. */
+            zeiger=anfang;
+            while(zeiger->next != NULL) {
+                zeiger1=zeiger->next;
+
+                /* Ist die Adresse von zeiger1 der gesuchte Name? */
+                if(zeiger1->key == key) {
+                    /* Falls ja, dann ... */
+                    zeiger->next=zeiger1->next;
+                    break;
+                }
+                zeiger=zeiger1;
+            }  /* Ende while */
+        }     /* Ende else */
+    }        /* Ende if(anfang != NULL) */
+    else
+        printf("Es sind keine Daten zum Löschen vorhanden!!!\n");
+}
