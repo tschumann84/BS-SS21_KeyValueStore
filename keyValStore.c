@@ -5,6 +5,7 @@
 #include "keyValStore.h"
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 /*
 ### Datenhaltungskonzept
@@ -71,8 +72,11 @@ int writeToList(struct keyValKomb *point, char* key, char* value){
 
 int get(char* key, char* res){
     struct keyValKomb *zeiger;
+
+    /* Ist überhaupt ein Element vorhanden? */
     if(anfang != NULL) {
         zeiger=anfang;
+        /*Wir suchen in der Kette, ob das Element vorhanden ist. */
         while(zeiger->next != NULL) {
             if(zeiger->key == key) {
                 strcpy(zeiger->value, res);
@@ -94,6 +98,7 @@ int del(char* key){
         /* Ist unser 1. Element das von uns gesuchte (wen[])? */
         if(anfang->key == key) {
             zeiger=anfang->next;
+            free(anfang);
             anfang=zeiger;
         }
         else {
@@ -108,6 +113,7 @@ int del(char* key){
                 if(zeiger1->key == key) {
                     /* Falls ja, dann ... */
                     zeiger->next=zeiger1->next;
+                    free(zeiger1);
                     break;
                 }
                 zeiger=zeiger1;
