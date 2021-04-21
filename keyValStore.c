@@ -3,6 +3,7 @@
 //
 
 #include "keyValStore.h"
+#include <stdio.h>
 
 /*
 ### Datenhaltungskonzept
@@ -40,3 +41,41 @@ Festlegungen für den Inhalt der Werte:
  - ???Länge der Werte???
 */
 
+//Länge von Key und Value
+const lengthKey = 10;
+const lengthValue = 10;
+
+//Leere Variable für get-Funktion
+char res[lengthValue] = "";
+
+struct keyValKomb {
+    char key[lengthKey];
+    char value[lengthValue];
+    struct keyValKomb *next;
+};
+
+    struct keyValKomb *next   = NULL;
+    struct keyValKomb *anfang = NULL;
+
+int put(char* key, char* value){
+    if (anfang==NULL){
+
+    }
+};
+
+int writeToList(struct keyValKomb *point, char* key, char* value){
+
+}
+
+int get(char* key, char* res){
+
+};
+
+int del(char* key){
+    int i;
+    for(i=0; i -> *next = NULL; i++ ){
+        if (char* key = keyValKomb *key ){
+            struct keyValKomb;
+        }
+    }
+};
