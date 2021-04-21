@@ -39,3 +39,4 @@ Festlegungen für den Inhalt der Werte:
  - Werte bestehen aus Buchstaben und Zahlen.
  - ???Länge der Werte???
 */
+
