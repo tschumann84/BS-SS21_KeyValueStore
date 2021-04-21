@@ -42,6 +42,7 @@ Festlegungen für den Inhalt der Werte:
  - ???Länge der Werte???
 */
 
+
 //Länge von Key und Value
 const lengthKey = 10;
 const lengthValue = 10;
