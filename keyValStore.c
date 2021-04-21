@@ -4,6 +4,7 @@
 
 #include "keyValStore.h"
 #include <stdio.h>
+#include <string.h>
 
 /*
 ### Datenhaltungskonzept
@@ -68,7 +69,20 @@ int writeToList(struct keyValKomb *point, char* key, char* value){
 }
 
 int get(char* key, char* res){
-
+    struct keyValKomb *zeiger;
+    if(anfang != NULL) {
+        zeiger=anfang;
+        while(zeiger->next != NULL) {
+            if(zeiger->key == key) {
+                strcpy(zeiger->value, res);
+                zeiger->next=zeiger->next;
+                break;
+            }
+            zeiger = zeiger->next;
+        }
+    }
+    else
+        printf("Es sind keine Daten zum Löschen vorhanden!!!\n");
 };
 
 int del(char* key){
