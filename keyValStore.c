@@ -5,6 +5,7 @@
 #include "keyValStore.h"
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 /*
 ### Datenhaltungskonzept
@@ -93,6 +94,7 @@ int del(char* key){
         /* Ist unser 1. Element das von uns gesuchte (wen[])? */
         if(anfang->key == key) {
             zeiger=anfang->next;
+            free(anfang);
             anfang=zeiger;
         }
         else {
@@ -107,6 +109,7 @@ int del(char* key){
                 if(zeiger1->key == key) {
                     /* Falls ja, dann ... */
                     zeiger->next=zeiger1->next;
+                    free(zeiger1);
                     break;
                 }
                 zeiger=zeiger1;
