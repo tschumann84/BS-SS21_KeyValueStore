@@ -29,27 +29,27 @@ void writeToList(char* key, char* value);
  */
 void writeToList(char* key, char* value) {
     struct keyValKomb *point, *bevorpoint;
-    // Prüfen ob es eine Liste gibt, wenn nicht writeToEnd
+    // Prüfen, ob es eine Liste gibt, wenn nicht writeToEnd.
     if (anfang == NULL) {
         writeToEnd(key, value);
     }
-    // Liste durchlaufen so lange key größer als key in der Liste
+    // Liste durchlaufen so lange $key größer als $point.key ist.
     point = anfang;
     while(point != NULL && (strcmp(point->key, key) < 0)) {
         point = point->next;
     }
-    // Prüfen ob key die höchste Wertigkeit hat, dann writeToEnd
+    // Prüfen, ob key die höchste Wertigkeit hat, dann writeToEnd.
     if(point == NULL) {
         writeToEnd(key, value);
     }
-    // Prüfen ob key die niedrigste Wertigkeit hat, dann key-value auf $anfang speichern und liste schieben
+    // Prüfen, ob key die niedrigste Wertigkeit hat, dann key-value auf $anfang speichern und liste schieben.
     else if(point == anfang) {
         anfang=malloc(sizeof(struct keyValKomp));
         strcpy(anfang->key, key);
         strcpy(anfang->value, value);
         anfang->next = point;
     }
-    // Position finden an der $point beim durchlauf stehen geblieben ist und $nextpoint dahinter einfügen.
+    // Position finden an der $point beim Durchlauf stehen geblieben ist und $nextpoint dahinter einfügen.
     // Liste schieben und Kette schließen.
     else {
         bevorpoint=anfang;
@@ -73,20 +73,20 @@ void writeToList(char* key, char* value) {
 void writeToEnd(char* key, char* value) {
     struct keyValKomb *point;
 
-    //Prüfen ob die Liste leer ist
+    //Prüfen, ob die Liste leer ist.
     if(anfang == NULL) {
-        // wenn die Liste leer ist wird der Speicher reserviert.
+        // Wenn die Liste leer ist, wird der Speicher reserviert.
         if((anfang = malloc(sizeof(struct keyValKomb))) == NULL) {
             printf(stderr, "Kein Speicherplatz für keyValKomb vorhanden");
             return;
         }
-        // Schlüssel und Wert per Pointer übertragen und $anfang.next auf NULL
+        // Schlüssel+Wert per Pointer übertragen und $anfang.next auf NULL setzen.
         strcpy(anfang->key, key);
         strcpy(anfang->value, value);
         anfang->next = NULL;
     }
     else {
-        // wenn die Liste nicht leer ist, läuft die Schleife bis zum letzen Element.
+        // Wenn die Liste nicht leer ist, läuft die Schleife bis zum Letzen Element.
         point=anfang;
         while(point->next != NULL) {
             point = point->next;
