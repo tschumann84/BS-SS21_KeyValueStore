@@ -72,8 +72,11 @@ int writeToList(struct keyValKomb *point, char* key, char* value){
 
 int get(char* key, char* res){
     struct keyValKomb *zeiger;
+
+    /* Ist überhaupt ein Element vorhanden? */
     if(anfang != NULL) {
         zeiger=anfang;
+        /*Wir suchen in der Kette, ob das Element vorhanden ist. */
         while(zeiger->next != NULL) {
             if(zeiger->key == key) {
                 strcpy(zeiger->value, res);
