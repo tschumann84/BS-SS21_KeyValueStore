@@ -146,7 +146,7 @@ int get(char* key, char* res){
             }
             zeiger = zeiger->next;
             log_trace(res);
-        } while (zeiger->next != NULL);
+        } while (zeiger != NULL);
     }
     else
         printf("Es sind keine Daten zum Löschen vorhanden!!!\n");
