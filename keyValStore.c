@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include "log/log.h"
 
 /*
 ### Datenhaltungskonzept
@@ -85,14 +86,19 @@ int put(char* key, char* value){
     // Prüfen, ob es eine Liste gibt, wenn nicht run writeToEnd.
     if (anfang == NULL) {
         writeToEnd(key, value);
+        log_trace(anfang->key);
+        log_trace(anfang->value);
+        return 0;
     } else {
         // Liste durchlaufen so lange $key größer als $point.key ist.
         point = anfang;
         while (point != NULL && (strcmp(point->key, key) < 0)) {
+            log_trace(anfang->value);
             point = point->next;
         }
         // Prüfen, ob key die höchste Wertigkeit hat, dann writeToEnd.
         if (point == NULL) {
+            log_trace(anfang->value);
             writeToEnd(key, value);
         }
             // Prüfen, ob key die niedrigste Wertigkeit hat, dann key-value auf $anfang speichern und liste schieben.
@@ -100,6 +106,7 @@ int put(char* key, char* value){
             anfang = malloc(sizeof(struct keyValKomb));
             strcpy(anfang->key, key);
             strcpy(anfang->value, value);
+            log_trace(anfang->value);
             anfang->next = point;
         }
             // Position finden an der $point beim Durchlauf stehen geblieben ist und $nextpoint dahinter einfügen.
@@ -107,8 +114,10 @@ int put(char* key, char* value){
         else {
             bevorpoint = anfang;
             while (bevorpoint->next != point) {
+                log_trace(anfang->value);
                 bevorpoint = bevorpoint->next;
             };
+            log_trace(anfang->value);
             point = malloc(sizeof(struct keyValKomb));
             strcpy(point->key, key);
             strcpy(point->value, value);
@@ -123,16 +132,21 @@ int get(char* key, char* res){
 
     /* Ist überhaupt ein Element vorhanden? */
     if(anfang != NULL) {
+        log_trace(anfang->value);
         zeiger=anfang;
-        /*Wir suchen in der Kette, ob das Element vorhanden ist. */
-        while(zeiger->next != NULL) {
-            if(zeiger->key == key) {
-                strcpy(zeiger->value, res);
-                zeiger->next=zeiger->next;
+        log_trace(zeiger->value);
+        /* Wir suchen in der Kette, ob das Element vorhanden ist. */
+        do{
+            log_trace(zeiger->key);
+            log_trace(key);
+            if((strcmp(key, zeiger->key)==0)) {
+                strcpy(res, zeiger->value);
+                log_trace(res);
                 break;
             }
             zeiger = zeiger->next;
-        }
+            log_trace(res);
+        } while (zeiger->next != NULL);
     }
     else
         printf("Es sind keine Daten zum Löschen vorhanden!!!\n");
@@ -183,30 +197,41 @@ void writeToEnd(char* key, char* value) {
 
     //Prüfen, ob die Liste leer ist.
     if(anfang == NULL) {
+        log_trace(point->key);
+
         // Wenn die Liste leer ist, wird der Speicher reserviert.
         if((anfang = malloc(sizeof(struct keyValKomb))) == NULL) {
             fprintf(stderr, "Kein Speicherplatz für keyValKomb vorhanden");
             return;
+            log_trace(point->key);
         }
         // Schlüssel+Wert per Pointer übertragen und $anfang.next auf NULL setzen.
         strcpy(anfang->key, key);
         strcpy(anfang->value, value);
         anfang->next = NULL;
+        log_trace(point->key);
+
     }
     else {
         // Wenn die Liste nicht leer ist, läuft die Schleife bis zum Letzen Element.
         point=anfang;
         while(point->next != NULL) {
             point = point->next;
+            log_trace(point->key);
+
         }
         // der Speicher wird reserviert
         if((point->next = malloc(sizeof(struct keyValKomb))) == NULL) {
             fprintf(stderr, "Kein Speicherplatz fur keyValKomb vorhanden");
             return;
+            log_trace(point->key);
+
         }
         // Schlüssel und Wert werden übertragen und zuvor $point auf den reservierten Speicher gelegt.
         point=point->next;
         strcpy(point->key, key);
         strcpy(point->value, value);
+        log_trace(key);
+
     }
 }

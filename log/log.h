@@ -7,6 +7,7 @@
 
 #ifndef LOG_H
 #define LOG_H
+#define LOG_USE_COLOR
 
 #include <stdio.h>
 #include <stdarg.h>
