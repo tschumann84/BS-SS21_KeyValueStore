@@ -85,35 +85,36 @@ int put(char* key, char* value){
     // Prüfen, ob es eine Liste gibt, wenn nicht writeToEnd.
     if (anfang == NULL) {
         writeToEnd(key, value);
-    }
-    // Liste durchlaufen so lange $key größer als $point.key ist.
-    point = anfang;
-    while(point != NULL && (strcmp(point->key, key) < 0)) {
-        point = point->next;
-    }
-    // Prüfen, ob key die höchste Wertigkeit hat, dann writeToEnd.
-    if(point == NULL) {
-        writeToEnd(key, value);
-    }
-        // Prüfen, ob key die niedrigste Wertigkeit hat, dann key-value auf $anfang speichern und liste schieben.
-    else if(point == anfang) {
-        anfang=malloc(sizeof(struct keyValKomp));
-        strcpy(anfang->key, key);
-        strcpy(anfang->value, value);
-        anfang->next = point;
-    }
-        // Position finden an der $point beim Durchlauf stehen geblieben ist und $nextpoint dahinter einfügen.
-        // Liste schieben und Kette schließen.
-    else {
-        bevorpoint=anfang;
-        while(bevorpoint->next != point) {
-            bevorpoint=bevorpoint->next;
-        };
-        point=malloc(sizeof(struct keyValKomb));
-        strcpy(point->key, key);
-        strcpy(point->value, value);
-        point->next=bevorpoint->next;
-        bevorpoint->next=point;
+    } else {
+        // Liste durchlaufen so lange $key größer als $point.key ist.
+        point = anfang;
+        while (point != NULL && (strcmp(point->key, key) < 0)) {
+            point = point->next;
+        }
+        // Prüfen, ob key die höchste Wertigkeit hat, dann writeToEnd.
+        if (point == NULL) {
+            writeToEnd(key, value);
+        }
+            // Prüfen, ob key die niedrigste Wertigkeit hat, dann key-value auf $anfang speichern und liste schieben.
+        else if (point == anfang) {
+            anfang = malloc(sizeof(struct keyValKomp));
+            strcpy(anfang->key, key);
+            strcpy(anfang->value, value);
+            anfang->next = point;
+        }
+            // Position finden an der $point beim Durchlauf stehen geblieben ist und $nextpoint dahinter einfügen.
+            // Liste schieben und Kette schließen.
+        else {
+            bevorpoint = anfang;
+            while (bevorpoint->next != point) {
+                bevorpoint = bevorpoint->next;
+            };
+            point = malloc(sizeof(struct keyValKomb));
+            strcpy(point->key, key);
+            strcpy(point->value, value);
+            point->next = bevorpoint->next;
+            bevorpoint->next = point;
+        }
     }
 }
 
