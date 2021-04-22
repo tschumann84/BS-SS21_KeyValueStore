@@ -82,7 +82,7 @@ void writeToEnd(char* key, char* value);
 
 int put(char* key, char* value){
     struct keyValKomb *point, *bevorpoint;
-    // Prüfen, ob es eine Liste gibt, wenn nicht writeToEnd.
+    // Prüfen, ob es eine Liste gibt, wenn nicht run writeToEnd.
     if (anfang == NULL) {
         writeToEnd(key, value);
     } else {
@@ -97,7 +97,7 @@ int put(char* key, char* value){
         }
             // Prüfen, ob key die niedrigste Wertigkeit hat, dann key-value auf $anfang speichern und liste schieben.
         else if (point == anfang) {
-            anfang = malloc(sizeof(struct keyValKomp));
+            anfang = malloc(sizeof(struct keyValKomb));
             strcpy(anfang->key, key);
             strcpy(anfang->value, value);
             anfang->next = point;
