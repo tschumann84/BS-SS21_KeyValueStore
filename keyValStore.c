@@ -43,8 +43,11 @@ Festlegungen für den Inhalt der Werte:
  - ???Länge der Werte???
 */
 
+//struct keyValKomb myKeyValKomb;
+
+
 //Leere Variable für get-Funktion
-char res[lengthValue] = "";
+char res[LENGTH_VALUE] = "";
 
 //Variablen für den Anfang der verketteten Liste
 struct keyValKomb *next   = NULL;
@@ -104,9 +107,9 @@ int put(char* key, char* value){
     else {
         bevorpoint=anfang;
         while(bevorpoint->next != point) {
-            bevorpoint=bevorpoint->next
-        }
-        point=malloc(sizeof(struct keyValKomp));
+            bevorpoint=bevorpoint->next;
+        };
+        point=malloc(sizeof(struct keyValKomb));
         strcpy(point->key, key);
         strcpy(point->value, value);
         point->next=bevorpoint->next;
@@ -181,7 +184,7 @@ void writeToEnd(char* key, char* value) {
     if(anfang == NULL) {
         // Wenn die Liste leer ist, wird der Speicher reserviert.
         if((anfang = malloc(sizeof(struct keyValKomb))) == NULL) {
-            printf(stderr, "Kein Speicherplatz für keyValKomb vorhanden");
+            fprintf(stderr, "Kein Speicherplatz für keyValKomb vorhanden");
             return;
         }
         // Schlüssel+Wert per Pointer übertragen und $anfang.next auf NULL setzen.
@@ -197,7 +200,7 @@ void writeToEnd(char* key, char* value) {
         }
         // der Speicher wird reserviert
         if((point->next = malloc(sizeof(struct keyValKomb))) == NULL) {
-            printf(stderr, "Kein Speicherplatz fur keyValKomb vorhanden");
+            fprintf(stderr, "Kein Speicherplatz fur keyValKomb vorhanden");
             return;
         }
         // Schlüssel und Wert werden übertragen und zuvor $point auf den reservierten Speicher gelegt.
