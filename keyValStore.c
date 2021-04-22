@@ -44,9 +44,6 @@ Festlegungen für den Inhalt der Werte:
  - ???Länge der Werte???
 */
 
-//struct keyValKomb myKeyValKomb;
-
-
 //Leere Variable für get-Funktion
 char res[LENGTH_VALUE] = "";
 
@@ -82,47 +79,54 @@ void writeToEnd(char* key, char* value);
  */
 
 int put(char* key, char* value){
+    log_debug(":put(Start) KEY: %s VALUE: %s", key, value);
     struct keyValKomb *point, *bevorpoint;
     // Prüfen, ob es eine Liste gibt, wenn nicht run writeToEnd.
     if (anfang == NULL) {
+        log_info(":put LinkedList ist leer");
+        log_debug(":put call writeToEnd(%s, %s)", key, value);
         writeToEnd(key, value);
-        log_trace(anfang->key);
-        log_trace(anfang->value);
-        return 0;
+        return 1;
     } else {
         // Liste durchlaufen so lange $key größer als $point.key ist.
+        log_info(":put LinkedList ist nicht leer");
         point = anfang;
         while (point != NULL && (strcmp(point->key, key) < 0)) {
-            log_trace(anfang->value);
             point = point->next;
         }
         // Prüfen, ob key die höchste Wertigkeit hat, dann writeToEnd.
         if (point == NULL) {
-            log_trace(anfang->value);
+            log_info(":put KEY hat den höchsten Wert: %s", key);
+            log_debug(":put call writeToEnd(%s, %s)", key, value);
             writeToEnd(key, value);
+            return 0;
         }
             // Prüfen, ob key die niedrigste Wertigkeit hat, dann key-value auf $anfang speichern und liste schieben.
         else if (point == anfang) {
+            log_info(":put Key hat den niedrigsten Wert: %s", key);
+            log_debug(":put nächster Key hat den Wert: %s", anfang->key);
             anfang = malloc(sizeof(struct keyValKomb));
             strcpy(anfang->key, key);
             strcpy(anfang->value, value);
-            log_trace(anfang->value);
             anfang->next = point;
+            return 0;
         }
             // Position finden an der $point beim Durchlauf stehen geblieben ist und $nextpoint dahinter einfügen.
             // Liste schieben und Kette schließen.
         else {
+            log_info("Key hat einen Wert dazwischen: %s", key);
             bevorpoint = anfang;
             while (bevorpoint->next != point) {
-                log_trace(anfang->value);
                 bevorpoint = bevorpoint->next;
             };
-            log_trace(anfang->value);
             point = malloc(sizeof(struct keyValKomb));
             strcpy(point->key, key);
             strcpy(point->value, value);
+            log_info("Key davor hat Wert: %s", bevorpoint->key);
+            log_info("Key danach hat Wert: %s", bevorpoint->next->key);
             point->next = bevorpoint->next;
             bevorpoint->next = point;
+            return 0;
         }
     }
 }
@@ -132,20 +136,20 @@ int get(char* key, char* res){
 
     /* Ist überhaupt ein Element vorhanden? */
     if(anfang != NULL) {
-        log_trace(anfang->value);
+//        log_trace(anfang->value);
         zeiger=anfang;
-        log_trace(zeiger->value);
+//        log_trace(zeiger->value);
         /* Wir suchen in der Kette, ob das Element vorhanden ist. */
         do{
-            log_trace(zeiger->key);
-            log_trace(key);
+//            log_trace(zeiger->key);
+//            log_trace(key);
             if((strcmp(key, zeiger->key)==0)) {
                 strcpy(res, zeiger->value);
-                log_trace(res);
+//                log_trace(res);
                 break;
             }
             zeiger = zeiger->next;
-            log_trace(res);
+//            log_trace(res);
         } while (zeiger != NULL);
     }
     else
@@ -193,45 +197,41 @@ int del(char* key){
  * Übergeben wird der Schlüssel (key) sowie der Wert (value) als char Array.
  */
 void writeToEnd(char* key, char* value) {
+    log_debug(":writeToEnd(Start) KEY: %s  VALUE: %s", key, value);
     struct keyValKomb *point;
 
     //Prüfen, ob die Liste leer ist.
     if(anfang == NULL) {
-        log_trace(point->key);
-
+        log_info(":writeToEnd LinkedList ist leer");
         // Wenn die Liste leer ist, wird der Speicher reserviert.
         if((anfang = malloc(sizeof(struct keyValKomb))) == NULL) {
-            fprintf(stderr, "Kein Speicherplatz für keyValKomb vorhanden");
+            log_fatal(":writeToEnd, Memory Allocation für keyValKomb schlug fehl");
             return;
-            log_trace(point->key);
         }
+        log_info(":writeToEnd LinkedList wird erstellt");
         // Schlüssel+Wert per Pointer übertragen und $anfang.next auf NULL setzen.
         strcpy(anfang->key, key);
         strcpy(anfang->value, value);
         anfang->next = NULL;
-        log_trace(point->key);
-
+        log_debug(":writeToEnd LinkedList erstellt: KEY %s, VALUE %s, NEXT %s",anfang->key, anfang->value, anfang->next);
     }
     else {
         // Wenn die Liste nicht leer ist, läuft die Schleife bis zum Letzen Element.
+        log_info(":writeToEnd LinkedList ist nicht leer");
         point=anfang;
         while(point->next != NULL) {
             point = point->next;
-            log_trace(point->key);
-
         }
         // der Speicher wird reserviert
         if((point->next = malloc(sizeof(struct keyValKomb))) == NULL) {
-            fprintf(stderr, "Kein Speicherplatz fur keyValKomb vorhanden");
+            log_fatal(":writeToEnd, Memory Allocation für keyValKomb schlug fehl");
             return;
-            log_trace(point->key);
-
         }
+        log_info(":writeToList KeyValue wird an LinkedList angehängt");
         // Schlüssel und Wert werden übertragen und zuvor $point auf den reservierten Speicher gelegt.
         point=point->next;
         strcpy(point->key, key);
         strcpy(point->value, value);
-        log_trace(key);
-
+        log_debug(":writeToEnd KeyValue angehängt: KEY %s, VALUE %S, NEXT %s", point->key, point->value, point->next);
     }
 }
