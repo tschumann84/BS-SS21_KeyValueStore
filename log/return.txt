@@ -14,6 +14,12 @@
         -1 Liste exisitert nicht
          0 Key gelöscht
 # main.c
+    int main()
+        -2 PID vorhanden
+        -1 Port in Nutzung
+         0 Programm ordentlich beendet
+         1 Programm von Benutzer beendet
+
 # sub.c
 # func/
 ## writeFunc.c
