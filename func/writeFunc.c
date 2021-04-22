@@ -22,7 +22,7 @@ void writeToEnd(char* key, char* value);
 void writeToList(char* key, char* value);
 
 /*
- * ### writeToList - Elemente sortiert in die Liste eintragen
+ * ### put - Elemente sortiert in die Liste eintragen
  * writeToList fügt Key+Value sortiert nach der Wertigkeit von Key in die Liste ein.
  * Die Funktion benutzt writeToEnd() und reserviert den benötigten Speicherplatz.
  * Übergeben wird der Schlüssel (key) und der Wert (value) als char Array.
@@ -101,5 +101,4 @@ void writeToEnd(char* key, char* value) {
         strcpy(point->key, key);
         strcpy(point->value, value);
     }
-
 }

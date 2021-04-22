@@ -1,0 +1,20 @@
+### Sammlung der Returnwerte aller Funktionen
+
+# keyValStore.c
+    int put(char* key, char* value)
+         0 Hinzugefügt
+         1 Liste erstellt und Hinzugefügt
+         2 Key überschrieben
+    int get(char* key, char* res)
+        -2 Key nicht gefunden
+        -1 Liste existiert nicht
+         0 Key gefunden
+    int del(char* key)
+        -2 Key nicht gefunden
+        -1 Liste exisitert nicht
+         0 Key gelöscht
+# main.c
+# sub.c
+# func/
+## writeFunc.c
+    siehe keyValStore.c -> int put(char* key, char* value)
