@@ -166,6 +166,7 @@ int del(char* key){
             zeiger=anfang->next;
             free(anfang);
             anfang=zeiger;
+            return 0;
         }
         else {
             /* Es ist nicht das 1. Element zu löschen. Wir suchen in
@@ -180,14 +181,15 @@ int del(char* key){
                     /* Falls ja, dann ... */
                     zeiger->next=zeiger1->next;
                     free(zeiger1);
-                    break;
+                    return 0;
                 }
                 zeiger=zeiger1;
             }  /* Ende while */
         }     /* Ende else */
+        return -2;
     }        /* Ende if(anfang != NULL) */
     else
-        printf("Es sind keine Daten zum Löschen vorhanden!!!\n");
+        return -1;
 }
 // ### Nebenfunktionen
 /*
