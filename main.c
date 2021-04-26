@@ -6,13 +6,13 @@
 
 
 int main() {
-    *//* Logs:
+    /* Logs:
      * Level 0: trace
      * Level 1: debug
      * Level 2: info
      * Level 3: warn
      * Level 4: error
-     * Level 5: fatal *//*
+     * Level 5: fatal */
     log_set_level(1);
 
     char hallo[10] = "c string";
