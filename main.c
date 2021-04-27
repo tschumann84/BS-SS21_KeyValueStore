@@ -18,7 +18,7 @@ int main() {
     char hallo[10] = "c string";
     char diesdas[10] = "c string";
     log_info(hallo);
-
+char res[LENGTH_VALUE];
     put("12b3","Irgenein1");
     put("4","Happy");
     put("1ab4", "5000");
@@ -26,6 +26,9 @@ int main() {
     get("12b3", hallo);
 //    log_fatal(hallo);
     get("4", diesdas);
+    del("12b3");
+    get("12b3",res);
+    printf("%s",res);
 //    log_warn(diesdas);
     server_start();
     return 0;

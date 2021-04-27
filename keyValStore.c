@@ -165,7 +165,7 @@ int del(char* key){
     if(anfang != NULL) {
         /* Ist unser 1. Element das von uns gesuchte (wen[])? */
         log_info(":del Anfang hat den Wert: %s", anfang->key);
-        if(anfang->key == key) {
+        if(strcmp(key, anfang->key) == key) {
             log_info(":del Gesuchter Key wurde am Anfang gefunden: %s",key);
             zeiger=anfang->next;
             log_info(":del Zeiger hat den naechsten Key: %s", zeiger->key);
@@ -181,12 +181,12 @@ int del(char* key){
              * handen ist. */
             zeiger=anfang;
             log_info(":del Zeiger hat den Wert: %s", zeiger->key);
-            while(zeiger->next != NULL) {
+            do {
                 zeiger1=zeiger->next;
                 log_info(":del Zeiger1 hat den Wert: %s", zeiger1->key);
 
-                /* Ist die Adresse von zeiger1 der gesuchte Name? */
-                if(zeiger1->key == key) {
+                /* Ist die Adresse von zeiger1 der gesuchten Adresse? */
+                if(strcmp(key, zeiger1->key)) {
                     log_info(":del Gesuchter Key wurde gefunden: %s",key);
                     /* Falls ja, dann ... */
                     zeiger->next=zeiger1->next;
@@ -197,8 +197,9 @@ int del(char* key){
                 }
                 zeiger=zeiger1;
                 log_info(":del Zeiger hat den neuen Wert: %s", zeiger->key);
-            }  /* Ende while */
-        }     /* Ende else */
+            }while(zeiger->next != NULL);
+            /* Ende while */
+        }   /* Ende else */
         return -2;
         log_info(":del Key wurde nicht gefunden Key: %s, Res: %s",key, res);
     }        /* Ende if(anfang != NULL) */
