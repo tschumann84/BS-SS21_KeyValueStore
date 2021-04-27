@@ -2,7 +2,7 @@
 #include "main.h"
 #include "log/log.h"
 #include "keyValStore.h"
-#include "server.c"
+#include "server.h"
 
 
 int main() {
@@ -27,6 +27,6 @@ int main() {
 //    log_fatal(hallo);
     get("4", diesdas);
 //    log_warn(diesdas);
-    start_server();
+    server_start();
     return 0;
 }

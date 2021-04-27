@@ -4,4 +4,4 @@ project(BS21 C)
 
 set(CMAKE_C_STANDARD 99)
 
-add_executable(BS21 main.c main.h keyValStore.c keyValStore.h sub.c sub.h log/log.c log/log.h server.c)
+add_executable(BS21 main.c main.h keyValStore.c keyValStore.h sub.c sub.h log/log.c log/log.h server.c server.h)
