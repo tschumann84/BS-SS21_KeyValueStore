@@ -133,39 +133,46 @@ int put(char* key, char* value){
 
 int get(char* key, char* res){
     struct keyValKomb *zeiger;
-
+    log_debug(":get (Start) Key: %s, Res: %s",key, res );
     /* Ist überhaupt ein Element vorhanden? */
     if(anfang != NULL) {
-//        log_trace(anfang->value);
+        log_info(":get Anfang hat den Wert: %s", anfang->key);
         zeiger=anfang;
-//        log_trace(zeiger->value);
+        log_info(":get Zeiger hat den Wert: %s", zeiger->key);
         /* Wir suchen in der Kette, ob das Element vorhanden ist. */
         do{
-//            log_trace(zeiger->key);
-//            log_trace(key);
+            log_info(":get Zeiger hat den Wert: %s", zeiger->key);
             if((strcmp(key, zeiger->key)==0)) {
                 strcpy(res, zeiger->value);
-//                log_trace(res);
-                break;
+                log_info(":get Gesuchter Key wurde gefunden: %s",key);
+                return 0;
             }
             zeiger = zeiger->next;
-//            log_trace(res);
+            log_info(":get Zeiger hat den neuen Wert: %s", zeiger->key);
         } while (zeiger != NULL);
+        log_info(":get Key wurde nicht gefunden Key: %s, Res: %s",key, res);
+        return -2;
     }
     else
-        printf("Es sind keine Daten zum Löschen vorhanden!!!\n");
+        log_info(":get LinkedList ist leer");
+        return -1;
 }
 
 int del(char* key){
     struct keyValKomb *zeiger, *zeiger1;
-
+    log_debug(":del (Start) Key: %s",key);
     /* Ist überhaupt ein Element vorhanden? */
     if(anfang != NULL) {
         /* Ist unser 1. Element das von uns gesuchte (wen[])? */
+        log_info(":del Anfang hat den Wert: %s", anfang->key);
         if(anfang->key == key) {
+            log_info(":del Gesuchter Key wurde am Anfang gefunden: %s",key);
             zeiger=anfang->next;
+            log_info(":del Zeiger hat den naechsten Key: %s", zeiger->key);
+            log_debug(":del (Gelöscht) Key: %s, Value: %s",anfang ->key, anfang->value);
             free(anfang);
             anfang=zeiger;
+            log_info(":del Neuer Key wurde am Anfang gesetzt: %s", zeiger->key);
             return 0;
         }
         else {
@@ -173,22 +180,30 @@ int del(char* key){
              * der weiteren Kette, ob das zu löschende Element vor-
              * handen ist. */
             zeiger=anfang;
+            log_info(":del Zeiger hat den Wert: %s", zeiger->key);
             while(zeiger->next != NULL) {
                 zeiger1=zeiger->next;
+                log_info(":del Zeiger1 hat den Wert: %s", zeiger1->key);
 
                 /* Ist die Adresse von zeiger1 der gesuchte Name? */
                 if(zeiger1->key == key) {
+                    log_info(":del Gesuchter Key wurde gefunden: %s",key);
                     /* Falls ja, dann ... */
                     zeiger->next=zeiger1->next;
+                    log_info(":del Liste wurd neu gelinkt: %s", zeiger->key);
+                    log_debug(":del (Gelöscht) Key: %s, Value: %s",zeiger1 ->key, zeiger1->value);
                     free(zeiger1);
                     return 0;
                 }
                 zeiger=zeiger1;
+                log_info(":del Zeiger hat den neuen Wert: %s", zeiger->key);
             }  /* Ende while */
         }     /* Ende else */
         return -2;
+        log_info(":del Key wurde nicht gefunden Key: %s, Res: %s",key, res);
     }        /* Ende if(anfang != NULL) */
     else
+        log_info(":del LinkedList ist leer");
         return -1;
 }
 // ### Nebenfunktionen
