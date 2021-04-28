@@ -97,14 +97,12 @@ int server_start() {
 
         // Zurückschicken der Daten, solange der Client welche schickt (und kein Fehler passiert)
         while (bytes_read > 0) {
-            interface(in);
+            clearArray(in);
 
             //write(cfd, in, bytes_read);
             bytes_read = read(cfd, in, BUFSIZE);
             log_debug(":server_start %d bytes empfangen", bytes_read);
-            if (in[2]=='I'){
-                printf("Hallo");
-            }
+            interface(in);
         }
         close(cfd);
         log_info(":server_start %d Socket geschlossen");
