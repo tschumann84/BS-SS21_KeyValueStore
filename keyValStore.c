@@ -202,7 +202,7 @@ int del(char* key){
             }while(zeiger->next != NULL);
             /* Ende while */
         }   /* Ende else */
-        return -2;
+        return -1;
         log_info(":del Key wurde nicht gefunden Key: %s, Res: %s",key, res);
     }        /* Ende if(anfang != NULL) */
     else

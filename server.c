@@ -60,19 +60,20 @@ int server_start() {
         log_fatal(":server_start Socket konnte nicht auf listen gesetzt werden");
         exit(-1);
     }
-    log_info(":server_start Socket lauscht");
 
     while (ENDLOSSCHLEIFE) {
         // Verbindung eines Clients wird entgegengenommen
+        log_info(":server_start Socket lauscht");
         cfd = accept(rfd, (struct sockaddr *) &client, &client_len);
 
-        // Lesen von Daten, die der Client schickt
+  /*      // Lesen von Daten, die der Client schickt
         bytes_read = read(cfd, in, BUFSIZE);
+
         log_debug(":server_start %d bytes empfangen", bytes_read);
-        log_debug(":server_start folgende Daten empfangen: %s", in);
+        log_debug(":server_start folgende Daten empfangen: %s", in);*/
 
         // Hier befindet sich die Programmlogik
-        while (bytes_read > 0) {
+        do{
             clearArray(in);
             clearArray(out);
 
@@ -84,13 +85,14 @@ int server_start() {
             //Überprüfung ob Socket geschlossen werden soll.
             if (returnCodeInterface==-3){
                 close(cfd);
-                return 1;
             }
             //Ausgabe
             write(cfd, out, strlen(out));
-        }
+        } while (bytes_read > 0);
         close(cfd);
         log_warn(":server_start %d Socket geschlossen");
-        return 0;
     }
+    // Rendevouz Descriptor schließen
+    close(rfd);
+
 }
