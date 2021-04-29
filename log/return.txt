@@ -10,8 +10,7 @@
         -1 Liste existiert nicht
          0 Key gefunden
     int del(char* key)
-        -2 Key nicht gefunden
-        -1 Liste exisitert nicht
+        -1 Key nicht gefunden
          0 Key gelöscht
 # main.c
     int main()

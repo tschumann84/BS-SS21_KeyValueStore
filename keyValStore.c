@@ -167,7 +167,7 @@ int del(char* key){
     if(anfang != NULL) {
         /* Ist unser 1. Element das von uns gesuchte (wen[])? */
         log_info(":del Anfang hat den Wert: %s", anfang->key);
-        if(strcmp(key, anfang->key) == key) {
+        if(strcmp(key, anfang->key) == 0) {
             log_info(":del Gesuchter Key wurde am Anfang gefunden: %s",key);
             zeiger=anfang->next;
             log_info(":del Zeiger hat den naechsten Key: %s", zeiger->key);
@@ -188,7 +188,7 @@ int del(char* key){
                 log_info(":del Zeiger1 hat den Wert: %s", zeiger1->key);
 
                 /* Ist die Adresse von zeiger1 der gesuchten Adresse? */
-                if(strcmp(key, zeiger1->key)) {
+                if(strcmp(key, zeiger1->key) == 0) {
                     log_info(":del Gesuchter Key wurde gefunden: %s",key);
                     /* Falls ja, dann ... */
                     zeiger->next=zeiger1->next;

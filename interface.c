@@ -94,7 +94,7 @@ int interface(char* in, char* out){
         //del Funktion aufrufen
         switch(del(key)){
             //Ausgabe
-            case -2: snprintf(out, BUFSIZE, "DEL:%s:key_nonexistent\r\n", key); return 0;
+            case -1: snprintf(out, BUFSIZE, "DEL:%s:key_nonexistent\r\n", key); return 0;
             case 0: snprintf(out, BUFSIZE, "DEL:%s:key_deleted\r\n", key); return 0;
         }
     }
