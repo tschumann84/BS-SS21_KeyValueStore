@@ -7,6 +7,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "log/log.h"
+#include "interface.h"
 
 /*
 ### Datenhaltungskonzept
@@ -132,6 +133,7 @@ int put(char* key, char* value){
 }
 
 int get(char* key, char* res){
+    clearArray(res);
     struct keyValKomb *zeiger;
     log_debug(":get (Start) Key: %s, Res: %s",key, res );
     /* Ist überhaupt ein Element vorhanden? */
