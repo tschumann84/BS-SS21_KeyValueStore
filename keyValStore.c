@@ -252,6 +252,6 @@ void writeToEnd(char* key, char* value) {
         point=point->next;
         strcpy(point->key, key);
         strcpy(point->value, value);
-        log_debug(":writeToEnd KeyValue angehängt: KEY %s, VALUE %S, NEXT %s", point->key, point->value, point->next);
+        log_debug(":writeToEnd KeyValue angehängt: KEY %s, VALUE %s, NEXT %s", point->key, point->value, point->next);
     }
 }
