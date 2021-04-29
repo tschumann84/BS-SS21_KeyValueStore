@@ -1,37 +1,33 @@
 /*******************************************************************************
 
-  Ein TCP-Echo-Server als iterativer Server: Der Server schickt einfach die
-  Daten, die der Client schickt, an den Client zurück.
+  Ein TCP-Server.
+  Quelle: https://wiki.moxd.io/pages/viewpage.action?pageId=94700009
 
+  In seiner Funktionsweise an die Anforderungen angepasst.
 *******************************************************************************/
 
+#include "server.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include "log/log.h"
 #include <string.h>
 #include "interface.h"
 
-#define BUFSIZE 1024 // Größe des Buffers
-#define TRUE 1
 #define ENDLOSSCHLEIFE 1
 #define PORT 5678
 
-int server_start();
-
 int server_start() {
-
     int rfd; // Rendevouz-Descriptor
     int cfd; // Verbindungs-Descriptor
 
     struct sockaddr_in client; // Socketadresse eines Clients
     socklen_t client_len; // Länge der Client-Daten
     char in[BUFSIZE]; // Daten vom Client an den Server
+    char out[BUFSIZE]; // Daten vom Server an den Client
     int bytes_read; // Anzahl der Bytes, die der Client geschickt hat
-
 
     // Socket erstellen
     rfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -42,11 +38,9 @@ int server_start() {
         exit(-1);
     }
 
-
     // Socket Optionen setzen für schnelles wiederholtes Binden der Adresse
     int option = 1;
     setsockopt(rfd, SOL_SOCKET, SO_REUSEADDR, (const void *) &option, sizeof(int));
-
 
     // Socket binden
     struct sockaddr_in server;
@@ -60,7 +54,6 @@ int server_start() {
     }
     log_info(":server_start Socket wurde gebunden");
 
-
     // Socket lauschen lassen
     int lrt = listen(rfd, 5);
     if (lrt < 0 ){
@@ -69,24 +62,6 @@ int server_start() {
     }
     log_info(":server_start Socket lauscht");
 
-/*
-    while (ENDLOSSCHLEIFE) {
-        // Verbindung eines Clients wird entgegengenommen
-        cfd = accept(rfd, (struct sockaddr *) &client, &client_len);
-
-        // Lesen von Daten, die der Client schickt
-        bytes_read = read(cfd, in, BUFSIZE);
-
-        // Zurückschicken der Daten, solange der Client welche schickt (und kein Fehler passiert)
-        while (bytes_read > 0) {
-            printf("sending back the %d bytes I received...\n", bytes_read);
-            write(cfd, in, bytes_read);
-            bytes_read = read(cfd, in, BUFSIZE);
-
-        }
-        close(cfd);
-    }*/
-
     while (ENDLOSSCHLEIFE) {
         // Verbindung eines Clients wird entgegengenommen
         cfd = accept(rfd, (struct sockaddr *) &client, &client_len);
@@ -94,21 +69,28 @@ int server_start() {
         // Lesen von Daten, die der Client schickt
         bytes_read = read(cfd, in, BUFSIZE);
         log_debug(":server_start %d bytes empfangen", bytes_read);
+        log_debug(":server_start folgende Daten empfangen: %s", in);
 
-        // Zurückschicken der Daten, solange der Client welche schickt (und kein Fehler passiert)
+        // Hier befindet sich die Programmlogik
         while (bytes_read > 0) {
             clearArray(in);
+            clearArray(out);
 
-            //write(cfd, in, bytes_read);
+            //Socket wird eingelesen
             bytes_read = read(cfd, in, BUFSIZE);
             log_debug(":server_start %d bytes empfangen", bytes_read);
-            interface(in);
+
+            int returnCodeInterface = interface(in, out);
+            //Überprüfung ob Socket geschlossen werden soll.
+            if (returnCodeInterface==-3){
+                close(cfd);
+                return 1;
+            }
+            //Ausgabe
+            write(cfd, out, strlen(out));
         }
         close(cfd);
-        log_info(":server_start %d Socket geschlossen");
+        log_warn(":server_start %d Socket geschlossen");
+        return 0;
     }
-
-    // Rendevouz Descriptor schließen
-    close(rfd);
-
 }

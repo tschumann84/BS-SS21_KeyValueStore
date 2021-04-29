@@ -6,8 +6,8 @@
 #define BS21_KEYVALSTORE_H
 
 //Länge von Key und Value
-#define LENGTH_KEY 10
-#define LENGTH_VALUE 10
+#define LENGTH_KEY 100
+#define LENGTH_VALUE 100
 
 // struct für Schlüssel und Wert zur Speicherung als verkettete List.
 
