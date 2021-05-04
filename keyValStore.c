@@ -155,10 +155,11 @@ int get(char* key, char* res){
         log_info(":get Key wurde nicht gefunden Key: %s, Res: %s",key, res);
         return -2;
     }
-    else
+    else {
         log_info(":get LinkedList ist leer");
         return -2;
     }
+}
 
 int del(char* key){
     struct keyValKomb *zeiger, *zeiger1;
