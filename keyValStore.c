@@ -158,7 +158,7 @@ int get(char* key, char* res){
     }
     else {
         log_info(":get LinkedList ist leer");
-        return -1;
+        return -2;
     }
 }
 
