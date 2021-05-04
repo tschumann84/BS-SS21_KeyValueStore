@@ -7,7 +7,6 @@
          2 Key überschrieben
     int get(char* key, char* res)
         -2 Key nicht gefunden
-        -1 Liste existiert nicht
          0 Key gefunden
     int del(char* key)
         -1 Key nicht gefunden
