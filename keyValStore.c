@@ -113,6 +113,7 @@ int put(char* key, char* value){
             return 0;
         }
             // Position finden an der $point beim Durchlauf stehen geblieben ist und $nextpoint dahinter einfügen.
+            // Existiert der Key bereits wird auf seiner Position gespeichert.
             // Liste schieben und Kette schließen.
         else {
             log_info("Key hat einen Wert dazwischen: %s", key);
