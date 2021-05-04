@@ -113,7 +113,6 @@ int put(char* key, char* value){
             return 0;
         }
             // Position finden an der $point beim Durchlauf stehen geblieben ist und $nextpoint dahinter einfügen.
-            // Existiert der Key bereits wird auf seiner Position gespeichert.
             // Liste schieben und Kette schließen.
         else {
             log_info("Key hat einen Wert dazwischen: %s", key);
@@ -140,27 +139,26 @@ int get(char* key, char* res){
     /* Ist überhaupt ein Element vorhanden? */
     if(anfang != NULL) {
         log_info(":get Anfang hat den Wert: %s", anfang->key);
-        zeiger = anfang;
+        zeiger=anfang;
         log_info(":get Zeiger hat den Wert: %s", zeiger->key);
         /* Wir suchen in der Kette, ob das Element vorhanden ist. */
-        do {
+        do{
             log_info(":get Zeiger hat den Wert: %s", zeiger->key);
-            if ((strcmp(key, zeiger->key) == 0)) {
+            if((strcmp(key, zeiger->key)==0)) {
                 strcpy(res, zeiger->value);
-                log_info(":get Gesuchter Key wurde gefunden: %s", key);
+                log_info(":get Gesuchter Key wurde gefunden: %s",key);
                 return 0;
             }
             zeiger = zeiger->next;
             log_info(":get Zeiger hat den neuen Wert: %s", zeiger->key);
         } while (zeiger != NULL);
-        log_info(":get Key wurde nicht gefunden Key: %s, Res: %s", key, res);
+        log_info(":get Key wurde nicht gefunden Key: %s, Res: %s",key, res);
         return -2;
     }
-    else {
+    else
         log_info(":get LinkedList ist leer");
         return -2;
     }
-}
 
 int del(char* key){
     struct keyValKomb *zeiger, *zeiger1;
