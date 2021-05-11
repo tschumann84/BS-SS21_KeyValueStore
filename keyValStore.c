@@ -92,8 +92,12 @@ int put(char* key, char* value){
         // Liste durchlaufen so lange $key größer als $point.key ist.
         log_info(":put LinkedList ist nicht leer");
         point = anfang;
+        log_debug(":point = anfang");
         while (point != NULL && (strcmp(point->key, key) < 0)) {
+            log_debug(":while");
             point = point->next;
+            log_debug(":point = Point->next");
+            log_debug(":point->next = %s", point);
         }
         // Prüfen, ob key die höchste Wertigkeit hat, dann writeToEnd.
         if (point == NULL) {
@@ -171,16 +175,21 @@ int del(char* key){
         if(strcmp(key, anfang->key) == 0) {
             log_info(":del Gesuchter Key wurde am Anfang gefunden: %s",key);
             zeiger=anfang->next;
-            log_info(":del Zeiger hat den naechsten Key: %s", zeiger->key);
-            log_debug(":del (Gelöscht) Key: %s, Value: %s",anfang ->key, anfang->value);
-            //free(anfang);
-            strcpy(anfang->key, anfang -> next -> key);
-            strcpy(anfang->value, anfang -> next -> value);
-            anfang -> next = zeiger -> next;
-            //anfang=zeiger;
-            free(zeiger);
-            log_info(":del Neuer Key wurde am Anfang gesetzt: %s", zeiger->key);
+            if(zeiger == NULL){
+                anfang = NULL;
+            }else {
+                log_info(":del Zeiger hat den naechsten Key: %s", zeiger->key);
+                log_debug(":del (Gelöscht) Key: %s, Value: %s", anfang->key, anfang->value);
+                //free(anfang);
+                strcpy(anfang->key, anfang->next->key);
+                strcpy(anfang->value, anfang->next->value);
+                anfang->next = zeiger->next;
+                //anfang=zeiger;
+                free(zeiger);
+                log_info(":del Neuer Key wurde am Anfang gesetzt: %s", anfang->key);
+            }
             return 0;
+
         }
         else {
             /* Es ist nicht das 1. Element zu löschen. Wir suchen in
@@ -257,6 +266,7 @@ void writeToEnd(char* key, char* value) {
         point=point->next;
         strcpy(point->key, key);
         strcpy(point->value, value);
+        point->next = NULL;
         log_debug(":writeToEnd KeyValue angehängt: KEY %s, VALUE %s, NEXT %s", point->key, point->value, point->next);
     }
 }
