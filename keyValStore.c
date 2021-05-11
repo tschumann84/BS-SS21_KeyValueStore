@@ -173,8 +173,12 @@ int del(char* key){
             zeiger=anfang->next;
             log_info(":del Zeiger hat den naechsten Key: %s", zeiger->key);
             log_debug(":del (Gelöscht) Key: %s, Value: %s",anfang ->key, anfang->value);
-            free(anfang);
-            anfang=zeiger;
+            //free(anfang);
+            strcpy(anfang->key, anfang -> next -> key);
+            strcpy(anfang->value, anfang -> next -> value);
+            anfang -> next = zeiger -> next;
+            //anfang=zeiger;
+            free(zeiger);
             log_info(":del Neuer Key wurde am Anfang gesetzt: %s", zeiger->key);
             return 0;
         }
