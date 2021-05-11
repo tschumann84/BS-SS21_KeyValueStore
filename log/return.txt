@@ -31,7 +31,6 @@
         0 Key gefunden
         -1 Es wurde kein Key eingegeben
         -2 Key ist zu lang
-
 # sub.c
 # func/
 ## writeFunc.c
