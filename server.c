@@ -13,6 +13,7 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <netinet/in.h>
+#include <signal.h>
 #include <arpa/inet.h>
 #include "log/log.h"
 #include <string.h>
@@ -97,7 +98,7 @@ int server_start() {
                 }
             } while (bytes_read > 0);
             close(cfd);
-            log_warn(":server_start %d Socket geschlossen");
+            log_warn(":server_start %i Socket geschlossen", ntohs(client.sin_port));
         }
     }
     close(rfd);
