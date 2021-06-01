@@ -92,12 +92,8 @@ int put(char* key, char* value){
         // Liste durchlaufen so lange $key größer als $point.key ist.
         log_info(":put LinkedList ist nicht leer");
         point = anfang;
-        log_debug(":point = anfang");
         while (point != NULL && (strcmp(point->key, key) < 0)) {
-            log_debug(":while");
             point = point->next;
-            log_debug(":point = Point->next");
-            log_debug(":point->next = %s", point);
         }
         // Prüfen, ob key die höchste Wertigkeit hat, dann writeToEnd.
         if (point == NULL) {
