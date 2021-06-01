@@ -76,6 +76,8 @@ static int safesemop (int semid, struct sembuf *sops, unsigned nsops);
 static int DeleteSemid = 0;
 static int DeleteShmid = 0;
 
+// ### Nebenfunktionen für Shared Memory und Semaphore
+// Vielleicht auch in Header auslagern
 static void locksem (int semid, int semnum) {
     struct sembuf sb;
     sb.sem_num = semnum;
@@ -113,6 +115,8 @@ static int safesemop (int semid, struct sembuf *sops, unsigned nsops) {
         printf ("Fehler: Semaphore mit ID %d (%d Operation)\n", semid, nsops);
     return retval;
 }
+
+// ### Sighandler um Shared Memory und Semaphoren bei SIG_KILL zu löschen
 typedef void (*sighandler_t)(int);
 static sighandler_t
 my_signal(int sig_nr, sighandler_t signalhandler) {
@@ -123,6 +127,20 @@ my_signal(int sig_nr, sighandler_t signalhandler) {
     if (sigaction(sig_nr, &neu_sig, &alt_sig) < 0)
         return SIG_ERR;
     return alt_sig.sa_handler;
+}
+static void delete (void) {
+    int res;
+    printf ("\nServer wird beendet - Lösche Semaphor %d.\n", DeleteSemid);
+    if(semctl (DeleteSemid, 0, IPC_RMID, 0) == -1) {
+        printf ("Fehler beim Löschen des Semaphors.\n");
+    }
+    res = shmctl (DeleteShmid, IPC_RMID, NULL);
+    if(res == -1)
+        printf ("Fehler bei shmctl() shmid %d, Kommando %d\n", DeleteShmid, IPC_RMID);
+    return;
+}
+static void sigdelete (int signum) {
+    exit(EXIT_FAILURE);
 }
 
 
