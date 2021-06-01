@@ -3,11 +3,11 @@
 //
 
 #include "keyValStore.h"
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include "log/log.h"
-#include "interface.h"
+//#include <stdio.h>
+//#include <string.h>
+//#include <stdlib.h>
+//#include "log/log.h"
+//#include "interface.h"
 
 ////shared Memory & Semaphore
 //#include <sys/types.h>
@@ -66,6 +66,7 @@ int get(char* key, char* res);
 int del(char* key);
 // ### Private Funktionen für Hauptfunktionen
 void writeToEnd(char* key, char* value);
+
 // ### SharedMem und Semaphoren
 static void locksem (int semid, int semnum);
 static void unlocksem (int semid, int semnum);
@@ -128,6 +129,7 @@ my_signal(int sig_nr, sighandler_t signalhandler) {
         return SIG_ERR;
     return alt_sig.sa_handler;
 }
+
 static void delete (void) {
     int res;
     printf ("\nServer wird beendet - Lösche Semaphor %d.\n", DeleteSemid);
