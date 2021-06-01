@@ -5,6 +5,9 @@
 #ifndef BS21_KEYVALSTORE_H
 #define BS21_KEYVALSTORE_H
 
+//Anzahl Schluessel für Store
+#define STORESIZE 500
+
 //Länge von Key und Value
 #define LENGTH_KEY 100
 #define LENGTH_VALUE 100
@@ -14,7 +17,7 @@
 struct keyValKomb {
     char key[LENGTH_KEY];
     char value[LENGTH_VALUE];
-    struct keyValKomb *next;
+//    struct keyValKomb *next;
 };
 
 // ### Öffentliche Funktionen
