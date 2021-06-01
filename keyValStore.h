@@ -20,6 +20,20 @@ struct keyValKomb {
 //    struct keyValKomb *next;
 };
 
+//shared Memory & Semaphore
+#include <sys/types.h>
+#include <sys/ipc.h>
+#include <sys/shm.h>
+#include <sys/sem.h>
+#include <signal.h>
+//#define keyVakKombSize (sizeof(keyValKomb))
+//#define SHMDATASIZE (STORESIZE*keyValKombSize)
+#define SHAREDMEMSIZE ((STORESIZE*sizeof(keyValKomb)).int)
+#define BUFFERSIZE (SHAREDMEMSIZE - sizeof(int))
+#define SN_EMPTY 0
+#define SN_FULL 1
+
+
 // ### Öffentliche Funktionen
 int put(char* key, char* value);
 int get(char* key, char* res);

@@ -9,16 +9,16 @@
 #include "log/log.h"
 #include "interface.h"
 
-//shared Memory & Semaphore
-#include <sys/types.h>
-#include <sys/ipc.h>
-#include <sys/shm.h>
-#include <sys/sem.h>
-#include <signal.h>
-#define SHAREMEMSIZE sizeof(keyValKomb)*500
-#define BUFFERSIZE (SHAREMEMSIZE - sizeof(int))
-#define SN_EMPTY 0
-#define SN_FULL 1
+////shared Memory & Semaphore
+//#include <sys/types.h>
+//#include <sys/ipc.h>
+//#include <sys/shm.h>
+//#include <sys/sem.h>
+//#include <signal.h>
+//#define SHAREDMEMSIZE (STORESIZE*sizeof(keyValKomb))
+//#define BUFFERSIZE (SHAREDMEMSIZE - sizeof(int))
+//#define SN_EMPTY 0
+//#define SN_FULL 1
 
 /*
 ### Datenhaltungskonzept
@@ -141,6 +141,39 @@ static void delete (void) {
 }
 static void sigdelete (int signum) {
     exit(EXIT_FAILURE);
+}
+static void sharedStore (void) {
+    union semun sunion;
+    int semid, shmid;
+    int res;
+    void *shmdata;
+    char *buffer;
+// Semaphore erstellen
+    semid = safesemget(IPC_PRIVATE, 2, SHM_R | SHM_W);
+    DeleteSemid = semid;
+// Semaphor beim Beenden löschen
+    atexit (&delete);
+// SIGHANDLER einrichten
+    my_signal(SIGINT, &sigdelete);
+// Semaphor init
+    sunion.val = 1;
+    safesemctl(semid, SN_EMPTY, SETVAL, sunion);
+    sunion.val = 0;
+    safesemctl(semid, SN_FULL, SETVAL, sunion);
+// Shared Memory einrichten
+    shmid = shmget(IPC_PRIVATE, SHAREDMEMSIZE, IPC_CREAT | SHM_R | SHM_W);
+    if (shmid == -1)
+        printf ("Fehler bei key %d, mit der Größe %d\n", IPC_PRIVATE, SHAREDMEMSIZE);
+    DeleteShmid = shmid;
+// Shared Memory anbindung
+    shmdata = shmat(shmid, NULL, 0);
+    if(shmdata == (void *) -1)
+        printf("Fehler bei shmat(): shmid %d\n", shmid);
+// Kennung am Anfang des Shared Memorys schreiben
+    *(int *) shmdata = semid;
+    buffer = shmdata + sizeof (int);
+    printf("Shared Memory hat ID %d\n", shmid);
+    return;
 }
 
 
