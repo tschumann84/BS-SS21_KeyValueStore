@@ -156,7 +156,7 @@ int get(char* key, char* res){
             zeiger = zeiger->next;
             log_info(":get Zeiger hat den neuen Wert: %s", zeiger->key);
         } while (zeiger != NULL);
-        log_info(":get Key wurde nicht gefunden Key: %s, Res: %s",key, res);
+        log_info(":get Key wurde nicht gefunden Key: %s",key);
         return -2;
     }
     else {
