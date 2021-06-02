@@ -139,16 +139,20 @@ int put(char* key, char* value){
     //Checken ob das Element bereits in der Liste ist.
     int i;
     for (i = 0; i<(*keyValNum); i++){
-        if(keyValStore[i].key == key){
-            strcpy(keyValStore[i].key, key);
+        if(strcmp(keyValStore[i].key, key)==0){
+            locksem(semid,SN_FULL);
+            strcpy(keyValStore[i].value, value);
+            unlocksem(semid,SN_EMPTY);
             return 0;
         }
     }
     // Wenn nicht in der Liste, an die letzte Stelle schreiben.
     if(((*keyValNum)+1) < STORESIZE) {
+        locksem(semid,SN_FULL);
         strcpy(keyValStore[(*keyValNum)].key, key);
         strcpy(keyValStore[(*keyValNum)].value, value);
-        *keyValNum++;
+        (*keyValNum)++;
+        unlocksem(semid,SN_EMPTY);
     }
     return 0;
 }
@@ -299,6 +303,8 @@ int del(char* key){
         do{
             if(strcmp(keyValStore[i].key, key) == 0) {
                 int j = i+1;
+
+                locksem(semid,SN_FULL);
                 do{
                     strcpy(keyValStore[i].key, keyValStore[j].key);
                     strcpy(keyValStore[i].value, keyValStore[j].value);
@@ -306,17 +312,19 @@ int del(char* key){
                     i++;
                 }while ((strcmp(keyValStore[j-1].key, "\0") != 0));
                 log_debug(":get Gesuchter Key wurde gefunden und gelöscht!");
+                (*keyValNum)--;
+                unlocksem(semid,SN_EMPTY);
                 return 0;
             }
             i++;
             log_info(":get Nächstes Element hat den neuen Wert: %s", keyValStore[i].key);
         } while ((strcmp(keyValStore[i].key, "\0") != 0));
         log_info(":get Key wurde nicht gefunden Key: %s",key);
-        return -2;
+        return -1;
     }
     else {
         log_info(":get LinkedList ist leer");
-        return -2;
+        return -1;
     }
     //return 0;
 }
