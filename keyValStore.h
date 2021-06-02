@@ -70,6 +70,9 @@ void sharedStore (void);
 static int DeleteSemid = 0;
 static int DeleteShmid = 0;
 
+void beginExklusive();
+void endExklusive();
+
 // ### Nebenfunktionen für Shared Memory und Semaphore
 // Vielleicht auch in Header auslagern
 static void locksem (int semid, int semnum) {

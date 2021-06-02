@@ -103,14 +103,14 @@ int interface(char* in, char* out){
     *******/
     else if (startsWith("BEG",in)){
         log_info(":interface Exklusive Transaktion gestartet (BEG)");
-        locksem(semid,SN_FULL);
-        unlocksem(semid,SN_FULL);
+        beginExklusive();
     }
     /********
        END
     *******/
     else if (startsWith("END",in)){
         log_info(":interface Exklusive Transaktion beendet (END)");
+        endExklusive();
     }
     /********
       QUIT

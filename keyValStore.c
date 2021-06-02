@@ -24,6 +24,10 @@ int semid, shmid;
 int* keyValNum;
 struct keyValKomb* keyValStore;
 
+
+void beginExklusive();
+void endExklusive();
+
 /*
 ### Datenhaltungskonzept
 
@@ -106,7 +110,7 @@ void sharedStore (void) {
 // Shared Memory einrichten
     shmid = shmget(IPC_PRIVATE, SHAREDMEMSIZE, IPC_CREAT | SHM_R | SHM_W);
     if (shmid == -1)
-        printf ("Fehler bei key %d, mit der Größe %d\n", IPC_PRIVATE, SHAREDMEMSIZE);
+        printf ("Fehler bei key %d, mit der Größe %ld \n", IPC_PRIVATE, SHAREDMEMSIZE);
     DeleteShmid = shmid;
 // Shared Memory anbindung
     shm_addr = shmat(shmid, NULL, 0);
@@ -133,19 +137,19 @@ int put(char* key, char* value){
     int i;
     for (i = 0; i<(*keyValNum); i++){
         if(strcmp(keyValStore[i].key, key)==0){
-            locksem(semid,SN_FULL);
+            locksem(semid,0);
             strcpy(keyValStore[i].value, value);
-            unlocksem(semid,SN_EMPTY);
+            unlocksem(semid,0);
             return 0;
         }
     }
     // Wenn nicht in der Liste, an die letzte Stelle schreiben.
     if(((*keyValNum)+1) < STORESIZE) {
-        locksem(semid,SN_FULL);
+        //locksem(semid,SN_EMPTY);
         strcpy(keyValStore[(*keyValNum)].key, key);
         strcpy(keyValStore[(*keyValNum)].value, value);
         (*keyValNum)++;
-        unlocksem(semid,SN_EMPTY);
+        //unlocksem(semid,SN_FULL);
     }
     return 0;
 }
@@ -153,8 +157,8 @@ int put(char* key, char* value){
 int get(char* key, char* res){
     clearArray(res);
     int i = 0;
+    locksem(semid,0);
     //Ist überhaupt ein Element vorhanden?
-    locksem(semid,SN_FULL);
     if(strcmp(keyValStore[i].key, "\0") != 0) {
         log_info(":get Erstes Element hat den Wert: %s", keyValStore[i].key);
         // Wir suchen in der Kette, ob das Element vorhanden ist.
@@ -162,17 +166,19 @@ int get(char* key, char* res){
             if(strcmp(keyValStore[i].key, key) == 0) {
                 strcpy(res, keyValStore[i].value);
                 log_info(":get Gesuchter Key wurde gefunden: %s", keyValStore[i].key);
+                unlocksem(semid,0);
                 return 0;
             }
             i++;
             log_info(":get Nächstes Element hat den neuen Wert: %s", keyValStore[i].key);
         } while ((strcmp(keyValStore[i].key, "\0") != 0));
-        unlocksem(semid,SN_EMPTY);
+        unlocksem(semid,0);
         log_info(":get Key wurde nicht gefunden Key: %s",key);
         return -2;
     }
     else {
         log_info(":get LinkedList ist leer");
+        unlocksem(semid,0);
         return -2;
     }
     //return 0;
@@ -183,33 +189,44 @@ int del(char* key){
     int i = 0;
     //Ist überhaupt ein Element vorhanden?
     if(strcmp(keyValStore[i].key, "\0") != 0) {
-        log_info(":get Erstes Element hat den Wert: %s", keyValStore[i].key);
+        log_info(":del Erstes Element hat den Wert: %s", keyValStore[i].key);
         // Wir suchen in der Kette, ob das Element vorhanden ist.
         do{
             if(strcmp(keyValStore[i].key, key) == 0) {
                 int j = i+1;
 
-                locksem(semid,SN_FULL);
+                locksem(semid,0);
                 do{
                     strcpy(keyValStore[i].key, keyValStore[j].key);
                     strcpy(keyValStore[i].value, keyValStore[j].value);
                     j++;
                     i++;
                 }while ((strcmp(keyValStore[j-1].key, "\0") != 0));
-                log_debug(":get Gesuchter Key wurde gefunden und gelöscht!");
+                log_debug(":del Gesuchter Key wurde gefunden und gelöscht!");
                 (*keyValNum)--;
-                unlocksem(semid,SN_EMPTY);
+                unlocksem(semid,0);
                 return 0;
             }
             i++;
-            log_info(":get Nächstes Element hat den neuen Wert: %s", keyValStore[i].key);
+            log_info(":del Nächstes Element hat den neuen Wert: %s", keyValStore[i].key);
         } while ((strcmp(keyValStore[i].key, "\0") != 0));
-        log_info(":get Key wurde nicht gefunden Key: %s",key);
+        log_info(":del Key wurde nicht gefunden Key: %s",key);
         return -1;
     }
     else {
-        log_info(":get LinkedList ist leer");
+        log_info(":del LinkedList ist leer");
         return -1;
     }
     //return 0;
 }
+
+void beginExklusive(){
+    struct sembuf semaphore_lock[1]   = { 0, -1, SEM_UNDO };
+    //locksem(semid,1);
+};
+
+void endExklusive(){
+    struct sembuf semaphore_unlock[1] = { 0, 1,  SEM_UNDO };
+    safesemop(semid,&semaphore_unlock[0],1);
+    //unlocksem(semid,1);
+};
