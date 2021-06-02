@@ -17,6 +17,6 @@ int main() {
     put("2","zweiter");
     put("3","dritter");*/
     sharedStore();
-    //server_start();
+    server_start();
     return 0;
 }

@@ -119,12 +119,15 @@ void sharedStore (void) {
 
 
 
-    strcpy(keyValStore[0].key, "asdasdsa");
-    strcpy(keyValStore[0].value, "123");
+    strcpy(keyValStore[0].key, "1");
+    strcpy(keyValStore[0].value, "erster");
     log_debug(":sharedStore sizeof1 %i", sizeof(keyValStore[0]));
 
-    strcpy(keyValStore[1].key, "asdsd");
-    strcpy(keyValStore[1].value, "NEu");
+    strcpy(keyValStore[1].key, "2");
+    strcpy(keyValStore[1].value, "zweiter");
+
+    strcpy(keyValStore[2].key, "\0");
+    strcpy(keyValStore[2].value, "\0");
 
     log_debug(":sharedStore keyValStore[0] (%s, %s)", keyValStore[0].key, keyValStore[0].value);
 
@@ -219,32 +222,33 @@ int put_linkedList(char* key, char* value){
     }
 }
  */
-//int get(char* key, char* res){
-//    clearArray(res);
-//    int i = 0;
-//    //Ist überhaupt ein Element vorhanden?
-//    if(keyValStore[i] != NULL) {
-//        log_info(":get Anfang hat den Wert: %s", array[i]);
-//        // Wir suchen in der Kette, ob das Element vorhanden ist.
-//        do{
-//            log_info(":get Array[i] hat den Wert: %s", array[i]);
-//            if(array[i].key == key) {
-//                res = array[i].res
-//                log_info(":get Gesuchter Key wurde gefunden: %s", array[i]);
-//                return 0;
-//            }
-//            i++;
-//            log_info(":get array[i] hat den neuen Wert: %s", array[i]);
-//        } while (array[i] != NULL);
-//        log_info(":get Key wurde nicht gefunden Key: %s",key);
-//        return -2;
-//    }
-//    else {
-//        log_info(":get LinkedList ist leer");
-//        return -2;
-//    }
-//    //return 0;
-//}
+int get(char* key, char* res){
+    clearArray(res);
+    int i = 0;
+    //Ist überhaupt ein Element vorhanden?
+    log_info(":get Anfang hat den Wert: %s", keyValStore[0].key);
+    if(strcmp(keyValStore[i].key, "\0") == false) {
+        log_info(":get Anfang hat den Wert: %s", keyValStore[i].key);
+        // Wir suchen in der Kette, ob das Element vorhanden ist.
+        do{
+            log_info(":get Array[i] hat den Wert: %s", keyValStore[i].key);
+            if(keyValStore[i].key == key) {
+                res = keyValStore[i].value;
+                log_info(":get Gesuchter Key wurde gefunden: %s", keyValStore[i].key);
+                return 0;
+            }
+            i++;
+            log_info(":get array[i] hat den neuen Wert: %s", keyValStore[i].key);
+        } while ((strcmp(keyValStore[i].key, "\0") == false));
+        log_info(":get Key wurde nicht gefunden Key: %s",key);
+        return -2;
+    }
+    else {
+        log_info(":get LinkedList ist leer");
+        return -2;
+    }
+    //return 0;
+}
 /*
 int get_linkedList(char* key, char* res){
     clearArray(res);
