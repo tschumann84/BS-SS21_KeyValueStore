@@ -231,7 +231,7 @@ int get(char* key, char* res){
         // Wir suchen in der Kette, ob das Element vorhanden ist.
         do{
             if(strcmp(keyValStore[i].key, key) == 0) {
-                res = keyValStore[i].value;
+                strcpy(res, keyValStore[i].value);
                 log_info(":get Gesuchter Key wurde gefunden: %s", keyValStore[i].key);
                 return 0;
             }
