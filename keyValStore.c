@@ -209,7 +209,7 @@ int get(char* key, char* res){
         do{
             log_info(":get Array[i] hat den Wert: %s", array[i]);
             if(array[i].key == key) {
-                res = array[i].res
+                res = array[i].value
                 log_info(":get Gesuchter Key wurde gefunden: %s", array[i]);
                 return 0;
             }
