@@ -226,20 +226,19 @@ int get(char* key, char* res){
     clearArray(res);
     int i = 0;
     //Ist überhaupt ein Element vorhanden?
-    log_info(":get Anfang hat den Wert: %s", keyValStore[0].key);
-    if(strcmp(keyValStore[i].key, "\0") == false) {
+    if(strcmp(keyValStore[i].key, "\0") != 0) {
         log_info(":get Anfang hat den Wert: %s", keyValStore[i].key);
         // Wir suchen in der Kette, ob das Element vorhanden ist.
         do{
-            log_info(":get Array[i] hat den Wert: %s", keyValStore[i].key);
-            if(keyValStore[i].key == key) {
+            log_info(":get Erstes Element hat den Wert: %s", keyValStore[i].key);
+            if(strcmp(keyValStore[i].key, key) == 0) {
                 res = keyValStore[i].value;
                 log_info(":get Gesuchter Key wurde gefunden: %s", keyValStore[i].key);
                 return 0;
             }
             i++;
-            log_info(":get array[i] hat den neuen Wert: %s", keyValStore[i].key);
-        } while ((strcmp(keyValStore[i].key, "\0") == false));
+            log_info(":get Nächstes Element hat den neuen Wert: %s", keyValStore[i].key);
+        } while ((strcmp(keyValStore[i].key, "\0") != 0));
         log_info(":get Key wurde nicht gefunden Key: %s",key);
         return -2;
     }
