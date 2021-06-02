@@ -21,6 +21,8 @@
 //#define SN_FULL 1
 
 int semid, shmid;
+int* keyValNum;
+struct keyValKomb* keyValStore;
 
 /*
 ### Datenhaltungskonzept
@@ -85,8 +87,6 @@ static void sigdelete (int signum) {
 }
 void sharedStore (void) {
     union semun sunion;
-    int* keyValNum;
-    struct keyValKomb* keyValStore;
     int res;
     char *buffer;
 // Semaphore erstellen
@@ -124,13 +124,12 @@ void sharedStore (void) {
     log_debug(":sharedStore sizeof1 %i", sizeof(keyValStore[0]));
 
     strcpy(keyValStore[1].key, "asdsd");
-    strcpy(keyValStore[1].value, "245");
+    strcpy(keyValStore[1].value, "NEu");
 
     log_debug(":sharedStore keyValStore[0] (%s, %s)", keyValStore[0].key, keyValStore[0].value);
 
     log_debug(":sharedStore keyValStore[0] (%s, %s)", keyValStore[0].key, keyValStore[0].value);
     log_debug(":sharedStore keyValStore[1] (%s, %s)", keyValStore[1].key, keyValStore[1].value);
-
     return;
 }
 
@@ -139,9 +138,6 @@ int put(char* key, char* value){
     return 0;
 }
 
-int get(char* key, char* res){
-    return 0;
-}
 
 //int store (void) {
 //    struct keyValKomb keyValStore[STORESIZE];
