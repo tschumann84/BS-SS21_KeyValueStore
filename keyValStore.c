@@ -227,10 +227,9 @@ int get(char* key, char* res){
     int i = 0;
     //Ist überhaupt ein Element vorhanden?
     if(strcmp(keyValStore[i].key, "\0") != 0) {
-        log_info(":get Anfang hat den Wert: %s", keyValStore[i].key);
+        log_info(":get Erstes Element hat den Wert: %s", keyValStore[i].key);
         // Wir suchen in der Kette, ob das Element vorhanden ist.
         do{
-            log_info(":get Erstes Element hat den Wert: %s", keyValStore[i].key);
             if(strcmp(keyValStore[i].key, key) == 0) {
                 res = keyValStore[i].value;
                 log_info(":get Gesuchter Key wurde gefunden: %s", keyValStore[i].key);
@@ -289,11 +288,12 @@ int del(char* key){
             if(strcmp(keyValStore[i].key, key) == 0) {
                 int j = i+1;
                 do{
-                    strcpy(keyValStore[i].key, "\0");
-                    strcpy(keyValStore[i].value, "\0");
+                    strcpy(keyValStore[i].key, keyValStore[j].key);
+                    strcpy(keyValStore[i].value, keyValStore[j].value);
                     j++;
-                }while ((strcmp(keyValStore[j].key, "\0") != 0));
-                log_info(":get Gesuchter Key wurde gefunden: %s", keyValStore[i].key);
+                    i++;
+                }while ((strcmp(keyValStore[j-1].key, "\0") != 0));
+                log_debug(":get Gesuchter Key wurde gefunden und gelöscht!");
                 return 0;
             }
             i++;
