@@ -99,6 +99,20 @@ int interface(char* in, char* out){
         }
     }
     /********
+       BEG
+    *******/
+    else if (startsWith("BEG",in)){
+        log_info(":interface Exklusive Transaktion gestartet (BEG)");
+        locksem(semid,SN_FULL);
+        unlocksem(semid,SN_FULL);
+    }
+    /********
+       END
+    *******/
+    else if (startsWith("END",in)){
+        log_info(":interface Exklusive Transaktion beendet (END)");
+    }
+    /********
       QUIT
     *******/
     else if (startsWith("QUIT",in)){
