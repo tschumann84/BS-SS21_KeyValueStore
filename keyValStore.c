@@ -20,6 +20,8 @@
 //#define SN_EMPTY 0
 //#define SN_FULL 1
 
+int semid, shmid;
+
 /*
 ### Datenhaltungskonzept
 
@@ -81,11 +83,11 @@ static void delete (void) {
 static void sigdelete (int signum) {
     exit(EXIT_FAILURE);
 }
-static void sharedStore (void) {
+void sharedStore (void) {
     union semun sunion;
-    int semid, shmid;
+    int* keyValNum;
+    struct keyValKomb* keyValStore;
     int res;
-    void *shmdata;
     char *buffer;
 // Semaphore erstellen
     semid = safesemget(IPC_PRIVATE, 2, SHM_R | SHM_W);
@@ -105,16 +107,41 @@ static void sharedStore (void) {
         printf ("Fehler bei key %d, mit der Größe %d\n", IPC_PRIVATE, SHAREDMEMSIZE);
     DeleteShmid = shmid;
 // Shared Memory anbindung
-    shmdata = shmat(shmid, NULL, 0);
-    if(shmdata == (void *) -1)
+    keyValNum = (int*) shmid;
+    keyValStore = (struct keyValKomb*) ((void*)shmat(shmid, NULL, 0)+sizeof(int));
+    if(keyValStore == (void *) -1)
         printf("Fehler bei shmat(): shmid %d\n", shmid);
-// Kennung am Anfang des Shared Memorys schreiben
-    *(int *) shmdata = semid;
-    buffer = shmdata + sizeof (int);
+
+    // Kennung am Anfang des Shared Memorys schreiben
+    *(int *) keyValStore = semid;
+    //buffer = keyValStore + sizeof (int);
     printf("Shared Memory hat ID %d\n", shmid);
+
+
+
+    strcpy(keyValStore[0].key, "asdasdsa");
+    strcpy(keyValStore[0].value, "123");
+    log_debug(":sharedStore sizeof1 %i", sizeof(keyValStore[0]));
+
+    strcpy(keyValStore[1].key, "asdsd");
+    strcpy(keyValStore[1].value, "245");
+
+    log_debug(":sharedStore keyValStore[0] (%s, %s)", keyValStore[0].key, keyValStore[0].value);
+
+    log_debug(":sharedStore keyValStore[0] (%s, %s)", keyValStore[0].key, keyValStore[0].value);
+    log_debug(":sharedStore keyValStore[1] (%s, %s)", keyValStore[1].key, keyValStore[1].value);
+
     return;
 }
 
+int put(char* key, char* value){
+    locksem (semid, SN_EMPTY);
+    return 0;
+}
+
+int get(char* key, char* res){
+    return 0;
+}
 
 //int store (void) {
 //    struct keyValKomb keyValStore[STORESIZE];
@@ -142,9 +169,6 @@ static void sharedStore (void) {
  * Die Funktion benutzt writeToEnd() und reserviert den benötigten Speicherplatz.
  * Übergeben wird der Schlüssel (key) und der Wert (value) als char Array.
  */
-int put(char* key, char* value){
-    return 0;
-}
 /*
 int put_linkedList(char* key, char* value){
     log_debug(":put(Start) KEY: %s VALUE: %s", key, value);
@@ -199,32 +223,32 @@ int put_linkedList(char* key, char* value){
     }
 }
  */
-int get(char* key, char* res){
-    clearArray(res);
-    int i = 0;
-    //Ist überhaupt ein Element vorhanden?
-    if(array[i] != NULL) {
-        log_info(":get Anfang hat den Wert: %s", array[i]);
-        // Wir suchen in der Kette, ob das Element vorhanden ist.
-        do{
-            log_info(":get Array[i] hat den Wert: %s", array[i]);
-            if(array[i].key == key) {
-                res = array[i].res
-                log_info(":get Gesuchter Key wurde gefunden: %s", array[i]);
-                return 0;
-            }
-            i++;
-            log_info(":get array[i] hat den neuen Wert: %s", array[i]);
-        } while (array[i] != NULL);
-        log_info(":get Key wurde nicht gefunden Key: %s",key);
-        return -2;
-    }
-    else {
-        log_info(":get LinkedList ist leer");
-        return -2;
-    }
-    //return 0;
-}
+//int get(char* key, char* res){
+//    clearArray(res);
+//    int i = 0;
+//    //Ist überhaupt ein Element vorhanden?
+//    if(keyValStore[i] != NULL) {
+//        log_info(":get Anfang hat den Wert: %s", array[i]);
+//        // Wir suchen in der Kette, ob das Element vorhanden ist.
+//        do{
+//            log_info(":get Array[i] hat den Wert: %s", array[i]);
+//            if(array[i].key == key) {
+//                res = array[i].res
+//                log_info(":get Gesuchter Key wurde gefunden: %s", array[i]);
+//                return 0;
+//            }
+//            i++;
+//            log_info(":get array[i] hat den neuen Wert: %s", array[i]);
+//        } while (array[i] != NULL);
+//        log_info(":get Key wurde nicht gefunden Key: %s",key);
+//        return -2;
+//    }
+//    else {
+//        log_info(":get LinkedList ist leer");
+//        return -2;
+//    }
+//    //return 0;
+//}
 /*
 int get_linkedList(char* key, char* res){
     clearArray(res);

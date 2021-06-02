@@ -36,7 +36,7 @@ struct keyValKomb {
 //#define keyVakKombSize (sizeof(keyValKomb))
 //#define SHMDATASIZE (STORESIZE*keyValKombSize)
 //#define SHAREDMEMSIZE ((STORESIZE*sizeof(keyValKomb)).int)
-#define SHAREDMEMSIZE 4096
+#define SHAREDMEMSIZE (((LENGTH_KEY+LENGTH_VALUE)*STORESIZE)+sizeof(int))
 #define BUFFERSIZE (SHAREDMEMSIZE - sizeof(int))
 #define SN_EMPTY 0
 #define SN_FULL 1
@@ -66,6 +66,7 @@ static void waitzero (int semid, int semnum);
 static int safesemget (key_t key, int nsems, int semflg);
 static int safesemctl (int semid, int semnum, int cmd, union semun arg);
 static int safesemop (int semid, struct sembuf *sops, unsigned nsops);
+void sharedStore (void);
 static int DeleteSemid = 0;
 static int DeleteShmid = 0;
 

@@ -4,7 +4,6 @@
 #include "keyValStore.h"
 #include "server.h"
 
-
 int main() {
     /* Logs:
      * Level 0: trace
@@ -17,6 +16,7 @@ int main() {
     /*put("1","erster");
     put("2","zweiter");
     put("3","dritter");*/
-    server_start();
+    sharedStore();
+    //server_start();
     return 0;
 }
