@@ -59,68 +59,75 @@ union semun {
 //};
 #endif
 /* -------------------------------------------------------- */
-//// ### SharedMem und Semaphoren
-//static void locksem (int semid, int semnum);
-//static void unlocksem (int semid, int semnum);
-//static void waitzero (int semid, int semnum);
-//static int safesemget (key_t key, int nsems, int semflg);
-//static int safesemctl (int semid, int semnum, int cmd, union senum arg);
-//static int safesemop (int semid, struct sembuf *sops, unsigned nsops);
-//static int DeleteSemid = 0;
-//static int DeleteShmid = 0;
-//
-//// ### Nebenfunktionen für Shared Memory und Semaphore
-//// Vielleicht auch in Header auslagern
-//static void locksem (int semid, int semnum) {
-//    struct sembuf sb;
-//    sb.sem_num = semnum;
-//    sb.sem_op = -1;
-//    sb.sem_flg = SEM_UNDO;
-//    safesemop (semid, &sb, 1);
-//    return;
-//}
-//static void unlocksem (int semid, int semnum) {
-//    struct sembuf sb;
-//    sb.sem_num = semnum;
-//    sb.sem_op = 1;
-//    sb.sem_flg = SEM_UNDO;
-//    safesemop (semid, &sb, 1);
-//}
-//static void waitzero (int semid, int semnum) {
-//    struct sembuf sb;
-//    sb.sem_num = semnum;
-//    sb.sem_op = 0;
-//    sb.sem_flg = 0;
-//    safesemop (semid, &sb, 1);
-//    return;
-//}
-//static int safesemget (key_t key, int nsems, int semflg) {
-//    int retval;
-//    retval = semget (key, nsems, semflg);
-//    if (retval == -1)
-//        printf ("Semaphore-Schlüssel %d, nsems %d konnte nicht erstellt werden", key, nsems);
-//    return retval;
-//}
-//static int safesemop (int semid, struct sembuf *sops, unsigned nsops) {
-//    int retval;
-//    retval = semop (semid, sops, nsops);
-//    if (retval == -1)
-//        printf ("Fehler: Semaphore mit ID %d (%d Operation)\n", semid, nsops);
-//    return retval;
-//}
-//
-//// ### Sighandler um Shared Memory und Semaphoren bei SIG_KILL zu löschen
-//typedef void (*sighandler_t)(int);
-//static sighandler_t
-//my_signal(int sig_nr, sighandler_t signalhandler) {
-//    struct sigaction neu_sig, alt_sig;
-//    neu_sig.sa_handler = signalhandler;
-//    sigemptyset (&neu_sig.sa_mask);
-//    neu_sig.sa_flags = SA_RESTART;
-//    if (sigaction(sig_nr, &neu_sig, &alt_sig) < 0)
-//        return SIG_ERR;
-//    return alt_sig.sa_handler;
-//}
+// ### SharedMem und Semaphoren
+static void locksem (int semid, int semnum);
+static void unlocksem (int semid, int semnum);
+static void waitzero (int semid, int semnum);
+static int safesemget (key_t key, int nsems, int semflg);
+static int safesemctl (int semid, int semnum, int cmd, union semun arg);
+static int safesemop (int semid, struct sembuf *sops, unsigned nsops);
+static int DeleteSemid = 0;
+static int DeleteShmid = 0;
+
+// ### Nebenfunktionen für Shared Memory und Semaphore
+// Vielleicht auch in Header auslagern
+static void locksem (int semid, int semnum) {
+    struct sembuf sb;
+    sb.sem_num = semnum;
+    sb.sem_op = -1;
+    sb.sem_flg = SEM_UNDO;
+    safesemop (semid, &sb, 1);
+    return;
+}
+static void unlocksem (int semid, int semnum) {
+    struct sembuf sb;
+    sb.sem_num = semnum;
+    sb.sem_op = 1;
+    sb.sem_flg = SEM_UNDO;
+    safesemop (semid, &sb, 1);
+}
+static void waitzero (int semid, int semnum) {
+    struct sembuf sb;
+    sb.sem_num = semnum;
+    sb.sem_op = 0;
+    sb.sem_flg = 0;
+    safesemop (semid, &sb, 1);
+    return;
+}
+static int safesemctl (int semid, int semnum, int cmd, union semun arg) {
+    int retval;
+    retval = semctl (semid, semnum, cmd, arg);
+    if (retval == -1)
+        printf ("Fehler: Semaphor mit ID %d, semnum %d, "
+                "Kommando %d\n", semid, semnum, cmd);
+    return retval;
+}
+static int safesemget (key_t key, int nsems, int semflg) {
+    int retval;
+    retval = semget (key, nsems, semflg);
+    if (retval == -1)
+        printf ("Semaphore-Schlüssel %d, nsems %d konnte nicht erstellt werden", key, nsems);
+    return retval;
+}
+static int safesemop (int semid, struct sembuf *sops, unsigned nsops) {
+    int retval;
+    retval = semop (semid, sops, nsops);
+    if (retval == -1)
+        printf ("Fehler: Semaphore mit ID %d (%d Operation)\n", semid, nsops);
+    return retval;
+}
+
+// ### Sighandler um Shared Memory und Semaphoren bei SIG_KILL zu löschen
+typedef void (*sighandler_t)(int);
+static sighandler_t my_signal(int sig_nr, sighandler_t signalhandler) {
+    struct sigaction neu_sig, alt_sig;
+    neu_sig.sa_handler = signalhandler;
+    sigemptyset (&neu_sig.sa_mask);
+    neu_sig.sa_flags = SA_RESTART;
+    if (sigaction(sig_nr, &neu_sig, &alt_sig) < 0)
+        return SIG_ERR;
+    return alt_sig.sa_handler;
+}
 
 // ### Öffentliche Funktionen
 int put(char* key, char* value);
