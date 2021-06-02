@@ -89,6 +89,8 @@ void sharedStore (void) {
     union semun sunion;
     int res;
     char *buffer;
+    char* shm_addr;
+
 // Semaphore erstellen
     semid = safesemget(IPC_PRIVATE, 2, SHM_R | SHM_W);
     DeleteSemid = semid;
@@ -107,37 +109,47 @@ void sharedStore (void) {
         printf ("Fehler bei key %d, mit der Größe %d\n", IPC_PRIVATE, SHAREDMEMSIZE);
     DeleteShmid = shmid;
 // Shared Memory anbindung
-    keyValNum = (int*) shmid;
-    keyValStore = (struct keyValKomb*) ((void*)shmat(shmid, NULL, 0)+sizeof(int));
+    shm_addr = shmat(shmid, NULL, 0);
+    if (!shm_addr) { /* operation failed. */
+        perror("shmat: ");
+        exit(1);
+    }
+    keyValNum = (int*) shm_addr;
+    *keyValNum = 0;
+    keyValStore = (struct keyValKomb*) ((void*)shm_addr+sizeof(int));
     if(keyValStore == (void *) -1)
         printf("Fehler bei shmat(): shmid %d\n", shmid);
 
-    // Kennung am Anfang des Shared Memorys schreiben
-    *(int *) keyValStore = semid;
     //buffer = keyValStore + sizeof (int);
     printf("Shared Memory hat ID %d\n", shmid);
 
 
+    log_info("*KeyValnum %d", *keyValNum);
 
-    strcpy(keyValStore[0].key, "1");
-    strcpy(keyValStore[0].value, "erster");
-    log_debug(":sharedStore sizeof1 %i", sizeof(keyValStore[0]));
-
-    strcpy(keyValStore[1].key, "2");
-    strcpy(keyValStore[1].value, "zweiter");
-
-    strcpy(keyValStore[2].key, "\0");
-    strcpy(keyValStore[2].value, "\0");
-
-    log_debug(":sharedStore keyValStore[0] (%s, %s)", keyValStore[0].key, keyValStore[0].value);
-
-    log_debug(":sharedStore keyValStore[0] (%s, %s)", keyValStore[0].key, keyValStore[0].value);
-    log_debug(":sharedStore keyValStore[1] (%s, %s)", keyValStore[1].key, keyValStore[1].value);
+    //Terminierendes Nullbyte auf jede Stelle im Array setzen.
+//    int i;
+//    for (i=0; i<STORESIZE; i++){
+//        strcpy(keyValStore[i].key, "\0");
+//        strcpy(keyValStore[i].value, "\0");
+//    }
     return;
 }
 
 int put(char* key, char* value){
-    locksem (semid, SN_EMPTY);
+    //Checken ob das Element bereits in der Liste ist.
+    int i;
+    for (i = 0; i<(*keyValNum); i++){
+        if(keyValStore[i].key == key){
+            strcpy(keyValStore[i].key, key);
+            return 0;
+        }
+    }
+    // Wenn nicht in der Liste, an die letzte Stelle schreiben.
+    if(((*keyValNum)+1) < STORESIZE) {
+        strcpy(keyValStore[(*keyValNum)].key, key);
+        strcpy(keyValStore[(*keyValNum)].value, value);
+        *keyValNum++;
+    }
     return 0;
 }
 
