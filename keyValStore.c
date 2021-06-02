@@ -256,7 +256,35 @@ int get_linkedList(char* key, char* res){
 }
  */
 int del(char* key){
-    return 0;
+    int i = 0;
+    //Ist überhaupt ein Element vorhanden?
+    if(array[i] != NULL) {
+        log_info(":get Anfang hat den Wert: %s", array[i]);
+        // Wir suchen in der Kette nach dem Key.
+        do{
+            log_info(":get Array[i] hat den Wert: %s", array[i]);
+            if(array[i].key == key) {
+                log_info(":get Gesuchter Key wurde gefunden: %s", array[i]);
+                int j = i;
+                do {
+                    array[j] = array[j+1];
+                    //array[i].key = "\0"
+                    j++;
+                }while(array[j] != NULL);
+                    log_debug(":get Key wurde gelöscht: %s", array[i]);
+                    return 0;
+            }
+            i++;
+            log_info(":get array[i] hat den neuen Wert: %s", array[i]);
+        } while (array[i] != NULL);
+        log_info(":get Key wurde nicht gefunden Key: %s",key);
+        return -2;
+    }
+    else {
+        log_info(":get LinkedList ist leer");
+        return -2;
+    }
+    //return 0;
 }
 /*
 int del_linkedList(char* key){
