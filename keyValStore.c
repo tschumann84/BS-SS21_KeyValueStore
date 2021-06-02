@@ -280,7 +280,33 @@ int get_linkedList(char* key, char* res){
 }
  */
 int del(char* key){
-    return 0;
+    int i = 0;
+    //Ist überhaupt ein Element vorhanden?
+    if(strcmp(keyValStore[i].key, "\0") != 0) {
+        log_info(":get Erstes Element hat den Wert: %s", keyValStore[i].key);
+        // Wir suchen in der Kette, ob das Element vorhanden ist.
+        do{
+            if(strcmp(keyValStore[i].key, key) == 0) {
+                int j = i+1;
+                do{
+                    strcpy(keyValStore[i].key, "\0");
+                    strcpy(keyValStore[i].value, "\0");
+                    j++;
+                }while ((strcmp(keyValStore[j].key, "\0") != 0));
+                log_info(":get Gesuchter Key wurde gefunden: %s", keyValStore[i].key);
+                return 0;
+            }
+            i++;
+            log_info(":get Nächstes Element hat den neuen Wert: %s", keyValStore[i].key);
+        } while ((strcmp(keyValStore[i].key, "\0") != 0));
+        log_info(":get Key wurde nicht gefunden Key: %s",key);
+        return -2;
+    }
+    else {
+        log_info(":get LinkedList ist leer");
+        return -2;
+    }
+    //return 0;
 }
 /*
 int del_linkedList(char* key){
