@@ -248,6 +248,7 @@ int get(char* key, char* res){
         return -2;
     }
     //return 0;
+    //ich habe was geändert
 }
 /*
 int get_linkedList(char* key, char* res){
