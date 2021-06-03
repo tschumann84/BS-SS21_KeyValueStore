@@ -1,4 +1,7 @@
 /*
+ * https://github.com/rxi/log.c
+ */
+/*
  * Copyright (c) 2020 rxi
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -19,6 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
  */
+
 
 #include "log.h"
 

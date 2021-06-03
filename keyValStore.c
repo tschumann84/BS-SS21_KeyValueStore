@@ -72,24 +72,35 @@ char res[LENGTH_VALUE] = "";
 int put(char* key, char* value);
 int get(char* key, char* res);
 int del(char* key);
+
 // ### Private Funktionen für Hauptfunktionen
-void writeToEnd(char* key, char* value);
+//void writeToEnd(char* key, char* value);
 
 static void delete (void) {
+    log_debug(":delete Start");
     int res;
-    printf ("\nServer wird beendet - Lösche Semaphor %d.\n", DeleteSemid);
+    log_info(":delete Server wird beendet...");
+    log_debug(":delete Lösche Semaphore semid: %d", DeleteShmid);
     if(semctl (DeleteSemid, 0, IPC_RMID, 0) == -1) {
-        printf ("Fehler beim Löschen des Semaphors.\n");
+        log_error(":delete Fehler beim löschen des Semaphores.");
+    } else {
+        log_info(":delete Semaphoren gelöscht.");
     }
+    log_debug(":delete Lösche Shared Memory shmid: %d", DeleteShmid);
     res = shmctl (DeleteShmid, IPC_RMID, NULL);
-    if(res == -1)
-        printf ("Fehler bei shmctl() shmid %d, Kommando %d\n", DeleteShmid, IPC_RMID);
+    if(res == -1) {
+        log_error(":delete Fehler beim löschen des Shared Memorys.");
+        log_debug(":delete shmctl shmid: %d, Kommando %d\n", DeleteShmid, IPC_RMID);
+    } else {
+        log_info(":delete Shared Memory gelöscht");
+    }
     return;
 }
 static void sigdelete (int signum) {
     exit(EXIT_FAILURE);
 }
 void sharedStore (void) {
+    log_debug(":sharedStore Start");
     union semun sunion;
     int res;
     char *buffer;
@@ -97,9 +108,10 @@ void sharedStore (void) {
 
 // Semaphore erstellen
     semid = safesemget(IPC_PRIVATE, 2, SHM_R | SHM_W);
+    log_debug(":sharedStore Semaphore erstellt semid: %d", semid);
     DeleteSemid = semid;
 // Semaphor beim Beenden löschen
-    atexit (&delete);
+    //atexit (&delete);
 // SIGHANDLER einrichten
     my_signal(SIGINT, &sigdelete);
 // Semaphor init
@@ -109,26 +121,40 @@ void sharedStore (void) {
     safesemctl(semid, SN_FULL, SETVAL, sunion);
 // Shared Memory einrichten
     shmid = shmget(IPC_PRIVATE, SHAREDMEMSIZE, IPC_CREAT | SHM_R | SHM_W);
-    if (shmid == -1)
-        printf ("Fehler bei key %d, mit der Größe %ld \n", IPC_PRIVATE, SHAREDMEMSIZE);
+    if (shmid == -1) {
+        log_error(":SharedStore Fehler bei Erstellung Shared Memory. Key: %d | Größe: %ld", IPC_PRIVATE, SHAREDMEMSIZE);
+    } else {
+        log_info(":sharedStore Shared Memory erstellt shmid: %d", shmid);
+    }
     DeleteShmid = shmid;
 // Shared Memory anbindung
+    log_info(":sharedStore Shared Memory anbinden... ");
     shm_addr = shmat(shmid, NULL, 0);
+    log_debug(":sharedStore shm_addr %d", shm_addr);
     if (!shm_addr) { /* operation failed. */
+        log_error(":sharedStore Fehler bei Anbindung Shared Memory.");
         perror("shmat: ");
         exit(1);
+    } else {
+        log_info(":sharedStore Shared Memory angebunden.");
     }
+
+    log_info(":sharedStore keyValStore im Shared Memory erstellen...");
     keyValNum = (int*) shm_addr;
     *keyValNum = 0;
     keyValStore = (struct keyValKomb*) ((void*)shm_addr+sizeof(int));
-    if(keyValStore == (void *) -1)
-        printf("Fehler bei shmat(): shmid %d\n", shmid);
+    log_debug(":sharedStore keyValStore: %d", keyValStore);
+    if(keyValStore == (void *) -1) {
+        log_error(":sharedStore Fehler, keyValStore konnte nicht erstellt werden.");
+//        printf("Fehler bei shmat(): shmid %d\n", shmid);
+    } else {
+        log_info(":sharedStore keyValStore erstellt.");
+    }
 
     //buffer = keyValStore + sizeof (int);
-    printf("Shared Memory hat ID %d\n", shmid);
+    //printf("Shared Memory hat ID %d\n", shmid);
 
-
-    log_info("*KeyValnum %d", *keyValNum);
+    log_debug(":sharedStore *KeyValnum %d", *keyValNum);
     return;
 }
 
