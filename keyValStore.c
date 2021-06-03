@@ -107,7 +107,8 @@ void sharedStore (void) {
     char* shm_addr;
 
 // Semaphore erstellen
-    semid = safesemget(IPC_PRIVATE, 2, SHM_R | SHM_W);
+//    semid = safesemget(IPC_PRIVATE, 2, SHM_R | SHM_W );
+    semid = safesemget(IPC_PRIVATE, 2, IPC_CREAT | 0770);
     log_debug(":sharedStore Semaphore erstellt semid: %d", semid);
     DeleteSemid = semid;
 // Semaphor beim Beenden löschen
@@ -161,29 +162,29 @@ void sharedStore (void) {
 int put(char* key, char* value){
     //Checken ob das Element bereits in der Liste ist.
     int i;
+    log_debug("locksem(semid, SEM_Store);");
+    locksem(semid, SEM_Store);
     for (i = 0; i<(*keyValNum); i++){
-        log_debug("locksem(semid, SEM_Store);");
-        locksem(semid, SEM_Store);
         if(strcmp(keyValStore[i].key, key)==0){
             //locksem(semid,0);
             strcpy(keyValStore[i].value, value);
-            log_debug("unlocksem(semid, SEM_Array);");
+            log_debug("unlocksem(semid, SEM_Store);");
             unlocksem(semid, SEM_Store);
             return 0;
         }
         //unlocksem(semid,SEM_Array);
     }
     // Wenn nicht in der Liste, an die letzte Stelle schreiben.
-    log_debug("locksem(semid, SEM_Array);");
-    locksem(semid, SEM_Array);
+//    log_debug("locksem(semid, SEM_Array);");
+//    locksem(semid, SEM_Array);
     if(((*keyValNum)+1) < STORESIZE) {
-        locksem(semid, SEM_Store);
+//        locksem(semid, SEM_Store);
         strcpy(keyValStore[(*keyValNum)].key, key);
         strcpy(keyValStore[(*keyValNum)].value, value);
         unlocksem(semid,SEM_Store);
         (*keyValNum)++;
     }
-    unlocksem(semid, SEM_Array);
+//    unlocksem(semid, SEM_Array);
     //log_debug("unlocksem(semid, SEM_Store);");
     //unlocksem(semid, SEM_Store);
     return 0;
@@ -244,11 +245,11 @@ int del(char* key){
                     i++;
                 }while ((strcmp(keyValStore[j-1].key, "\0") != 0));
                 log_debug(":del Gesuchter Key wurde gefunden und gelöscht!");
-                log_debug("locksem(semid, SEM_Array);");
-                locksem(semid, SEM_Array);
+//                log_debug("locksem(semid, SEM_Array);");
+//                locksem(semid, SEM_Array);
                 (*keyValNum)--;
-                unlocksem(semid, SEM_Array);
-                log_debug("unlocksem(semid, SEM_Store);");
+//                unlocksem(semid, SEM_Array);
+//                log_debug("unlocksem(semid, SEM_Store);");
                 unlocksem(semid, SEM_Store);
                 return 0;
             }
@@ -271,14 +272,14 @@ int del(char* key){
 
 void beginExklusive(){
     log_info(":beginExklusive");
-    struct sembuf semaphore_lock[1]   = { 0, -1, SEM_UNDO };
-    safesemop(semid, &semaphore_lock[0], 1);
+//    struct sembuf semaphore_lock[1]   = { 0, -1, SEM_UNDO };
+//    safesemop(semid, &semaphore_lock[0], 1);
     //locksem(semid,1);
 };
 
 void endExklusive(){
     log_info(":endExklusive");
-    struct sembuf semaphore_unlock[1] = { 0, 1,  SEM_UNDO };
-    safesemop(semid,&semaphore_unlock[0],1);
+//    struct sembuf semaphore_unlock[1] = { 0, 1,  SEM_UNDO };
+//    safesemop(semid,&semaphore_unlock[0],1);
     //unlocksem(semid,1);
 };
