@@ -72,7 +72,7 @@ char res[LENGTH_VALUE] = "";
 int put(char* key, char* value);
 int get(char* key, char* res);
 int del(char* key);
-
+void sharedStore (void);
 // ### Private Funktionen für Hauptfunktionen
 //void writeToEnd(char* key, char* value);
 
@@ -159,12 +159,11 @@ void sharedStore (void) {
 }
 
 int put(char* key, char* value){
-    log_debug("locksem(semid, SEM_Store);");
-    locksem(semid, SEM_Store);
     //Checken ob das Element bereits in der Liste ist.
     int i;
     for (i = 0; i<(*keyValNum); i++){
-        //locksem(semid, SEM_Store);
+        log_debug("locksem(semid, SEM_Store);");
+        locksem(semid, SEM_Store);
         if(strcmp(keyValStore[i].key, key)==0){
             //locksem(semid,0);
             strcpy(keyValStore[i].value, value);
@@ -175,25 +174,26 @@ int put(char* key, char* value){
         //unlocksem(semid,SEM_Array);
     }
     // Wenn nicht in der Liste, an die letzte Stelle schreiben.
+    log_debug("locksem(semid, SEM_Array);");
+    locksem(semid, SEM_Array);
     if(((*keyValNum)+1) < STORESIZE) {
-        //locksem(semid,SEM_Store);
+        locksem(semid, SEM_Store);
         strcpy(keyValStore[(*keyValNum)].key, key);
         strcpy(keyValStore[(*keyValNum)].value, value);
+        unlocksem(semid,SEM_Store);
         (*keyValNum)++;
-        //unlocksem(semid,SEM_Array);
     }
-    log_debug("unlocksem(semid, SEM_Store);");
-    unlocksem(semid, SEM_Store);
+    unlocksem(semid, SEM_Array);
+    //log_debug("unlocksem(semid, SEM_Store);");
+    //unlocksem(semid, SEM_Store);
     return 0;
 }
 
 int get(char* key, char* res){
-    log_debug("locksem(semid, SEM_Store);");
-    locksem(semid, SEM_Store);
     clearArray(res);
     int i = 0;
-    //locksem(semid, SEM_Array);
-    //Ist überhaupt ein Element vorhanden?
+    log_debug("locksem(semid, SEM_Store);");
+    locksem(semid, SEM_Store);
     if(strcmp(keyValStore[i].key, "\0") != 0) {
         log_info(":get Erstes Element hat den Wert: %s", keyValStore[i].key);
         // Wir suchen in der Kette, ob das Element vorhanden ist.
@@ -224,11 +224,11 @@ int get(char* key, char* res){
 }
 
 int del(char* key){
-    log_debug("locksem(semid, SEM_Store);");
-    locksem(semid, SEM_Store);
     int i = 0;
     //Ist überhaupt ein Element vorhanden?
     //locksem(semid, SEM_Store);
+    log_debug("locksem(semid, SEM_Store);");
+    locksem(semid, SEM_Store);
     if(strcmp(keyValStore[i].key, "\0") != 0) {
         log_info(":del Erstes Element hat den Wert: %s", keyValStore[i].key);
         // Wir suchen in der Kette, ob das Element vorhanden ist.
@@ -244,7 +244,10 @@ int del(char* key){
                     i++;
                 }while ((strcmp(keyValStore[j-1].key, "\0") != 0));
                 log_debug(":del Gesuchter Key wurde gefunden und gelöscht!");
+                log_debug("locksem(semid, SEM_Array);");
+                locksem(semid, SEM_Array);
                 (*keyValNum)--;
+                unlocksem(semid, SEM_Array);
                 log_debug("unlocksem(semid, SEM_Store);");
                 unlocksem(semid, SEM_Store);
                 return 0;
@@ -258,22 +261,24 @@ int del(char* key){
         return -1;
     }
     else {
-        log_info(":del LinkedList ist leer");
         log_debug("unlocksem(semid, SEM_Store);");
         unlocksem(semid, SEM_Store);
+        log_info(":del LinkedList ist leer");
         return -1;
     }
     //return 0;
 }
 
 void beginExklusive(){
-    //struct sembuf semaphore_lock[1]   = { 0, -1, SEM_UNDO };
-    //safesemop(semid, &semaphore_lock[0], 1);
+    log_info(":beginExklusive");
+    struct sembuf semaphore_lock[1]   = { 0, -1, SEM_UNDO };
+    safesemop(semid, &semaphore_lock[0], 1);
     //locksem(semid,1);
 };
 
 void endExklusive(){
-    //struct sembuf semaphore_unlock[1] = { 0, 1,  SEM_UNDO };
-    //safesemop(semid,&semaphore_unlock[0],1);
+    log_info(":endExklusive");
+    struct sembuf semaphore_unlock[1] = { 0, 1,  SEM_UNDO };
+    safesemop(semid,&semaphore_unlock[0],1);
     //unlocksem(semid,1);
 };
