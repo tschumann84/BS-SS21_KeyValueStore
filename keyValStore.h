@@ -38,8 +38,8 @@ struct keyValKomb {
 //#define SHAREDMEMSIZE ((STORESIZE*sizeof(keyValKomb)).int)
 #define SHAREDMEMSIZE (((LENGTH_KEY+LENGTH_VALUE)*STORESIZE)+sizeof(int))
 #define BUFFERSIZE (SHAREDMEMSIZE - sizeof(int))
-#define SN_EMPTY 0
-#define SN_FULL 1
+#define SEM_Store 0
+#define SEM_Array 1
 /* ---------- Bei BSD-UNIXen auskommentieren ------------ */
 #if defined(__GNU_LIBRARY__) && !defined(_SEM_SEMUN_UNDEFINED)
 /* union semun is defined by including <sys/sem.h> */
