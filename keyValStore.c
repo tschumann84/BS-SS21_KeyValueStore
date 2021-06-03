@@ -24,10 +24,6 @@ int semid, shmid;
 int* keyValNum;
 struct keyValKomb* keyValStore;
 
-
-void beginExklusive();
-void endExklusive();
-
 /*
 ### Datenhaltungskonzept
 
@@ -67,14 +63,15 @@ Festlegungen für den Inhalt der Werte:
 //Leere Variable für get-Funktion
 char res[LENGTH_VALUE] = "";
 
-
 // ### Öffentliche Funktionen für keyValStore
 int put(char* key, char* value);
 int get(char* key, char* res);
 int del(char* key);
 void sharedStore (void);
+void beginExklusive();
+void endExklusive();
+static void delete (void);
 // ### Private Funktionen für Hauptfunktionen
-//void writeToEnd(char* key, char* value);
 
 static void delete (void) {
     log_debug(":delete Start");
