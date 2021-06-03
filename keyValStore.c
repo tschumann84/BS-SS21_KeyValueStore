@@ -147,7 +147,6 @@ void sharedStore (void) {
     log_debug(":sharedStore keyValStore: %d", keyValStore);
     if(keyValStore == (void *) -1) {
         log_error(":sharedStore Fehler, keyValStore konnte nicht erstellt werden.");
-//        printf("Fehler bei shmat(): shmid %d\n", shmid);
     } else {
         log_info(":sharedStore keyValStore erstellt.");
     }
@@ -166,27 +165,19 @@ int put(char* key, char* value){
     locksem(semid, SEM_Store);
     for (i = 0; i<(*keyValNum); i++){
         if(strcmp(keyValStore[i].key, key)==0){
-            //locksem(semid,0);
             strcpy(keyValStore[i].value, value);
             log_debug("unlocksem(semid, SEM_Store);");
             unlocksem(semid, SEM_Store);
             return 0;
         }
-        //unlocksem(semid,SEM_Array);
     }
     // Wenn nicht in der Liste, an die letzte Stelle schreiben.
-//    log_debug("locksem(semid, SEM_Array);");
-//    locksem(semid, SEM_Array);
     if(((*keyValNum)+1) < STORESIZE) {
-//        locksem(semid, SEM_Store);
         strcpy(keyValStore[(*keyValNum)].key, key);
         strcpy(keyValStore[(*keyValNum)].value, value);
         unlocksem(semid,SEM_Store);
         (*keyValNum)++;
     }
-//    unlocksem(semid, SEM_Array);
-    //log_debug("unlocksem(semid, SEM_Store);");
-    //unlocksem(semid, SEM_Store);
     return 0;
 }
 
@@ -220,14 +211,10 @@ int get(char* key, char* res){
         unlocksem(semid, SEM_Store);
         return -2;
     }
-    //return 0;
-    //ich habe was geändert
 }
 
 int del(char* key){
     int i = 0;
-    //Ist überhaupt ein Element vorhanden?
-    //locksem(semid, SEM_Store);
     log_debug("locksem(semid, SEM_Store);");
     locksem(semid, SEM_Store);
     if(strcmp(keyValStore[i].key, "\0") != 0) {
@@ -237,7 +224,6 @@ int del(char* key){
             if(strcmp(keyValStore[i].key, key) == 0) {
                 int j = i+1;
 
-                //locksem(semid,0);
                 do{
                     strcpy(keyValStore[i].key, keyValStore[j].key);
                     strcpy(keyValStore[i].value, keyValStore[j].value);
@@ -245,11 +231,7 @@ int del(char* key){
                     i++;
                 }while ((strcmp(keyValStore[j-1].key, "\0") != 0));
                 log_debug(":del Gesuchter Key wurde gefunden und gelöscht!");
-//                log_debug("locksem(semid, SEM_Array);");
-//                locksem(semid, SEM_Array);
                 (*keyValNum)--;
-//                unlocksem(semid, SEM_Array);
-//                log_debug("unlocksem(semid, SEM_Store);");
                 unlocksem(semid, SEM_Store);
                 return 0;
             }
@@ -267,7 +249,6 @@ int del(char* key){
         log_info(":del LinkedList ist leer");
         return -1;
     }
-    //return 0;
 }
 
 void beginExklusive(){
