@@ -15,6 +15,7 @@
 #include "log/log.h"
 #include "keyValStore.h"
 #include "server.h"
+#include <unistd.h>
 
 bool startsWith(const char *pre, const char *str);
 int interface(char* in, char* out);
@@ -103,14 +104,16 @@ int interface(char* in, char* out){
     *******/
     else if (startsWith("BEG",in)){
         log_info(":interface Exklusive Transaktion gestartet (BEG)");
-        beginExklusive();
+        log_debug(":interface Prozess ID %d", getpid());
+        beginExklusive(getpid());
     }
     /********
        END
     *******/
     else if (startsWith("END",in)){
         log_info(":interface Exklusive Transaktion beendet (END)");
-        endExklusive();
+        log_debug(":interface Prozess ID %d", getpid());
+        endExklusive(getpid());
     }
     /********
       QUIT

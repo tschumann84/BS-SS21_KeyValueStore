@@ -3,6 +3,11 @@
 //
 
 #include "keyValStore.h"
+
+#include <fcntl.h>
+#include <unistd.h>
+#include <pwd.h>
+
 //#include <stdio.h>
 //#include <string.h>
 //#include <stdlib.h>
@@ -18,10 +23,11 @@
 //#define SHAREDMEMSIZE (STORESIZE*sizeof(keyValKomb))
 //#define BUFFERSIZE (SHAREDMEMSIZE - sizeof(int))
 //#define SEM_Store 0
-//#define SEM_Array 1
+//#define SEM_Trans 1
 
 int semid, shmid;
 int* keyValNum;
+int* TAID;
 struct keyValKomb* keyValStore;
 
 /*
@@ -68,8 +74,8 @@ int put(char* key, char* value);
 int get(char* key, char* res);
 int del(char* key);
 void sharedStore (void);
-void beginExklusive();
-void endExklusive();
+//int beginExklusive(char *f);
+//void endExklusive(char *f);
 static void delete (void);
 // ### Private Funktionen für Hauptfunktionen
 
@@ -105,7 +111,7 @@ void sharedStore (void) {
 
 // Semaphore erstellen
 //    semid = safesemget(IPC_PRIVATE, 2, SHM_R | SHM_W );
-    semid = safesemget(IPC_PRIVATE, 2, IPC_CREAT | 0770);
+    semid = safesemget(IPC_PRIVATE, 3, IPC_CREAT | 0770);
     log_debug(":sharedStore Semaphore erstellt semid: %d", semid);
     DeleteSemid = semid;
 // Semaphor beim Beenden löschen
@@ -115,10 +121,16 @@ void sharedStore (void) {
 // Semaphor init
     sunion.val = 1;
     safesemctl(semid, SEM_Store, SETVAL, sunion);
+
+
+    safesemctl(semid, SEM_TAID, SETVAL, sunion);
+
+
     sunion.val = 0;
-    safesemctl(semid, SEM_Array, SETVAL, sunion);
+    safesemctl(semid, SEM_Trans, SETVAL, sunion);
+
 // Shared Memory einrichten
-    shmid = shmget(IPC_PRIVATE, SHAREDMEMSIZE, IPC_CREAT | SHM_R | SHM_W);
+    shmid = shmget(IPC_PRIVATE, SHAREDMEMSIZE, IPC_CREAT | SHM_R | SHM_W );
     if (shmid == -1) {
         log_error(":SharedStore Fehler bei Erstellung Shared Memory. Key: %d | Größe: %ld", IPC_PRIVATE, SHAREDMEMSIZE);
     } else {
@@ -136,11 +148,20 @@ void sharedStore (void) {
     } else {
         log_info(":sharedStore Shared Memory angebunden.");
     }
-
     log_info(":sharedStore keyValStore im Shared Memory erstellen...");
     keyValNum = (int*) shm_addr;
     *keyValNum = 0;
-    keyValStore = (struct keyValKomb*) ((void*)shm_addr+sizeof(int));
+
+
+    log_info(":sharedStore TAID im shared Memory erstellen...");
+    TAID = (int*) ((void*)shm_addr+sizeof(int));
+    *TAID = 0;
+
+
+//    keyValStore = (struct keyValKomb*) ((void*)shm_addr+sizeof(int))
+
+    keyValStore = (struct keyValKomb*) ((void*)shm_addr+sizeof(int)+sizeof(int));
+
     log_debug(":sharedStore keyValStore: %d", keyValStore);
     if(keyValStore == (void *) -1) {
         log_error(":sharedStore Fehler, keyValStore konnte nicht erstellt werden.");
@@ -156,29 +177,54 @@ void sharedStore (void) {
 }
 
 int put(char* key, char* value){
-    //Checken ob das Element bereits in der Liste ist.
-    int i;
-    log_debug("locksem(semid, SEM_Store);");
-    locksem(semid, SEM_Store);
-    for (i = 0; i<(*keyValNum); i++){
-        if(strcmp(keyValStore[i].key, key)==0){
-            strcpy(keyValStore[i].value, value);
-            log_debug("unlocksem(semid, SEM_Store);");
-            unlocksem(semid, SEM_Store);
-            return 0;
+
+    log_debug(":put TAID = %d, PID = %d", *TAID, getpid());
+    locksem(semid, SEM_TAID);
+    if (*TAID == !0) {
+        if (*TAID == !getpid()) {
+            unlocksem(semid, SEM_TAID);
+            waitzero(semid, SEM_Trans);
         }
+    } else {
+        unlocksem(semid, SEM_TAID);
     }
-    // Wenn nicht in der Liste, an die letzte Stelle schreiben.
-    if(((*keyValNum)+1) < STORESIZE) {
-        strcpy(keyValStore[(*keyValNum)].key, key);
-        strcpy(keyValStore[(*keyValNum)].value, value);
-        unlocksem(semid,SEM_Store);
-        (*keyValNum)++;
-    }
-    return 0;
+
+        //Checken ob das Element bereits in der Liste ist.
+        int i;
+        log_debug(":put locksem(semid, SEM_Store);");
+        locksem(semid, SEM_Store);
+        for (i = 0; i < (*keyValNum); i++) {
+            if (strcmp(keyValStore[i].key, key) == 0) {
+                strcpy(keyValStore[i].value, value);
+                log_debug(":put unlocksem(semid, SEM_Store);");
+                unlocksem(semid, SEM_Store);
+                return 0;
+            }
+        }
+        // Wenn nicht in der Liste, an die letzte Stelle schreiben.
+        if (((*keyValNum) + 1) < STORESIZE) {
+            strcpy(keyValStore[(*keyValNum)].key, key);
+            strcpy(keyValStore[(*keyValNum)].value, value);
+            log_debug(":put unlocksem(semid, SEM_Store);");
+            unlocksem(semid, SEM_Store);
+            (*keyValNum)++;
+        }
+        return 0;
 }
 
 int get(char* key, char* res){
+
+    log_debug(":get TAID = %d, PID = %d", *TAID, getpid());
+    locksem(semid, SEM_TAID);
+    if (*TAID == !0) {
+        if (*TAID == !getpid()) {
+            unlocksem(semid, SEM_TAID);
+            waitzero(semid, SEM_Trans);
+        }
+    } else {
+        unlocksem(semid, SEM_TAID);
+    }
+
     clearArray(res);
     int i = 0;
     log_debug("locksem(semid, SEM_Store);");
@@ -211,6 +257,18 @@ int get(char* key, char* res){
 }
 
 int del(char* key){
+
+    log_debug(":del TAID = %d, PID = %d", *TAID, getpid());
+    locksem(semid, SEM_TAID);
+    if (*TAID == !0) {
+        if (*TAID == !getpid()) {
+            unlocksem(semid, SEM_TAID);
+            waitzero(semid, SEM_Trans);
+        }
+    } else {
+        unlocksem(semid, SEM_TAID);
+    }
+
     int i = 0;
     log_debug("locksem(semid, SEM_Store);");
     locksem(semid, SEM_Store);
@@ -247,17 +305,49 @@ int del(char* key){
         return -1;
     }
 }
+//void beginExklusive() {
+//
+//}
 
-void beginExklusive(){
-    log_info(":beginExklusive");
+void beginExklusive(int ID) {
+    log_debug(":beginExklusive ID = %d", ID);
+    locksem(semid, SEM_TAID);
+    *TAID = ID;
+    log_debug(":beginExklusive TAID = %d", *TAID);
+    locksem(semid, SEM_Trans);
+    unlocksem(semid, SEM_TAID);
+    return;
+};
+
+//int beginExklusive(char *f){
+//    log_info(":beginExklusive");
+//    int filedes;
+//    filedes = open(f, O_WRONLY | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+//    if (filedes == -1) {
+//        return 0;
+//    } else {
+//        close(filedes);
+//        return 1;
+//    }
 //    struct sembuf semaphore_lock[1]   = { 0, -1, SEM_UNDO };
 //    safesemop(semid, &semaphore_lock[0], 1);
     //locksem(semid,1);
+//};
+
+void endExklusive(int ID) {
+    locksem(semid, SEM_TAID);
+    if (ID == *TAID) {
+        *TAID = 0;
+        unlocksem(semid, SEM_Trans);
+    }
+    unlocksem(semid, SEM_TAID);
+    return;
 };
 
-void endExklusive(){
-    log_info(":endExklusive");
-//    struct sembuf semaphore_unlock[1] = { 0, 1,  SEM_UNDO };
-//    safesemop(semid,&semaphore_unlock[0],1);
-    //unlocksem(semid,1);
-};
+//void endExklusive(char *f){
+//    log_info(":endExklusive");
+//    unlink(f);
+////    struct sembuf semaphore_unlock[1] = { 0, 1,  SEM_UNDO };
+////    safesemop(semid,&semaphore_unlock[0],1);
+//    //unlocksem(semid,1);
+//};

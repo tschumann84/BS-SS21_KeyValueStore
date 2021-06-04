@@ -17,6 +17,10 @@
 #define LENGTH_KEY 100
 #define LENGTH_VALUE 100
 
+// Tempfile für Transaktion Block
+#define TRANSACTION_FILE "/tmp/.ta.file"
+//#define TAID 0
+
 // struct für Schlüssel und Wert zur Speicherung als verkettete List.
 
 struct keyValKomb {
@@ -36,10 +40,11 @@ struct keyValKomb {
 //#define keyVakKombSize (sizeof(keyValKomb))
 //#define SHMDATASIZE (STORESIZE*keyValKombSize)
 //#define SHAREDMEMSIZE ((STORESIZE*sizeof(keyValKomb)).int)
-#define SHAREDMEMSIZE (((LENGTH_KEY+LENGTH_VALUE)*STORESIZE)+sizeof(int))
+#define SHAREDMEMSIZE (((LENGTH_KEY+LENGTH_VALUE)*STORESIZE)+(2*sizeof(int)))
 #define BUFFERSIZE (SHAREDMEMSIZE - sizeof(int))
 #define SEM_Store 0
-#define SEM_Array 1
+#define SEM_Trans 1
+#define SEM_TAID 2
 /* ---------- Bei BSD-UNIXen auskommentieren ------------ */
 #if defined(__GNU_LIBRARY__) && !defined(_SEM_SEMUN_UNDEFINED)
 /* union semun is defined by including <sys/sem.h> */
@@ -70,8 +75,8 @@ void sharedStore (void);
 static int DeleteSemid = 0;
 static int DeleteShmid = 0;
 
-void beginExklusive();
-void endExklusive();
+void beginExklusive(int ID);
+void endExklusive(int ID);
 
 // ### Nebenfunktionen für Shared Memory und Semaphore
 // Vielleicht auch in Header auslagern
