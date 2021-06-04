@@ -86,7 +86,6 @@ static void locksem (int semid, int semnum) {
     sb.sem_op = -1;
     sb.sem_flg = SEM_UNDO;
     safesemop (semid, &sb, 1);
-    return;
 }
 static void unlocksem (int semid, int semnum) {
     struct sembuf sb;
@@ -101,7 +100,6 @@ static void waitzero (int semid, int semnum) {
     sb.sem_op = 0;
     sb.sem_flg = 0;
     safesemop (semid, &sb, 1);
-    return;
 }
 static int safesemctl (int semid, int semnum, int cmd, union semun arg) {
     int retval;

@@ -78,6 +78,10 @@ void sharedStore (void);
 //void endExklusive(char *f);
 static void delete (void);
 // ### Private Funktionen für Hauptfunktionen
+int put_in(char* key, char* value);
+int get_in(char* key, char* res);
+int del_in(char* key);
+
 
 static void delete (void) {
     log_debug(":delete Start");
@@ -175,56 +179,70 @@ void sharedStore (void) {
     log_debug(":sharedStore *KeyValnum %d", *keyValNum);
     return;
 }
-
-int put(char* key, char* value){
-
-    log_debug(":put TAID = %d, PID = %d", *TAID, getpid());
-    locksem(semid, SEM_TAID);
-    if (*TAID == !0) {
-        if (*TAID == !getpid()) {
-            unlocksem(semid, SEM_TAID);
-            waitzero(semid, SEM_Trans);
-        }
-    } else {
-        unlocksem(semid, SEM_TAID);
-    }
-
-        //Checken ob das Element bereits in der Liste ist.
-        int i;
-        log_debug(":put locksem(semid, SEM_Store);");
-        locksem(semid, SEM_Store);
-        for (i = 0; i < (*keyValNum); i++) {
-            if (strcmp(keyValStore[i].key, key) == 0) {
-                strcpy(keyValStore[i].value, value);
-                log_debug(":put unlocksem(semid, SEM_Store);");
-                unlocksem(semid, SEM_Store);
-                return 0;
-            }
-        }
-        // Wenn nicht in der Liste, an die letzte Stelle schreiben.
-        if (((*keyValNum) + 1) < STORESIZE) {
-            strcpy(keyValStore[(*keyValNum)].key, key);
-            strcpy(keyValStore[(*keyValNum)].value, value);
+int put_in(char* key, char* value) {
+    //Checken ob das Element bereits in der Liste ist.
+    int i;
+    log_debug(":put locksem(semid, SEM_Store);");
+    locksem(semid, SEM_Store);
+    for (i = 0; i < (*keyValNum); i++) {
+        if (strcmp(keyValStore[i].key, key) == 0) {
+            strcpy(keyValStore[i].value, value);
             log_debug(":put unlocksem(semid, SEM_Store);");
             unlocksem(semid, SEM_Store);
-            (*keyValNum)++;
+            return 0;
         }
-        return 0;
+    }
+// Wenn nicht in der Liste, an die letzte Stelle schreiben.
+    if (((*keyValNum) + 1) < STORESIZE) {
+        strcpy(keyValStore[(*keyValNum)].key, key);
+        strcpy(keyValStore[(*keyValNum)].value, value);
+        log_debug(":put unlocksem(semid, SEM_Store);");
+        unlocksem(semid, SEM_Store);
+        (*keyValNum)++;
+    }
+    return 0;
 }
 
-int get(char* key, char* res){
-
-    log_debug(":get TAID = %d, PID = %d", *TAID, getpid());
+int put(char* key, char* value){
     locksem(semid, SEM_TAID);
-    if (*TAID == !0) {
-        if (*TAID == !getpid()) {
+    if (*TAID == 0) {
+        unlocksem(semid, SEM_TAID);
+        return put_in(key, value);
+    } else {
+        if (*TAID == getpid()) {
+            unlocksem(semid, SEM_TAID);
+            return put_in(key, value);
+        } else {
             unlocksem(semid, SEM_TAID);
             waitzero(semid, SEM_Trans);
+            return put_in(key, value);
         }
-    } else {
-        unlocksem(semid, SEM_TAID);
     }
 
+//        //Checken ob das Element bereits in der Liste ist.
+//        int i;
+//        log_debug(":put locksem(semid, SEM_Store);");
+//        locksem(semid, SEM_Store);
+//        for (i = 0; i < (*keyValNum); i++) {
+//            if (strcmp(keyValStore[i].key, key) == 0) {
+//                strcpy(keyValStore[i].value, value);
+//                log_debug(":put unlocksem(semid, SEM_Store);");
+//                unlocksem(semid, SEM_Store);
+//                return 0;
+//            }
+//        }
+//        // Wenn nicht in der Liste, an die letzte Stelle schreiben.
+//        if (((*keyValNum) + 1) < STORESIZE) {
+//            strcpy(keyValStore[(*keyValNum)].key, key);
+//            strcpy(keyValStore[(*keyValNum)].value, value);
+//            log_debug(":put unlocksem(semid, SEM_Store);");
+//            unlocksem(semid, SEM_Store);
+//            (*keyValNum)++;
+//        }
+//        return 0;
+
+}
+int get_in(char* key, char* res) {
     clearArray(res);
     int i = 0;
     log_debug("locksem(semid, SEM_Store);");
@@ -256,19 +274,56 @@ int get(char* key, char* res){
     }
 }
 
-int del(char* key){
 
-    log_debug(":del TAID = %d, PID = %d", *TAID, getpid());
+int get(char* key, char* res){
+
     locksem(semid, SEM_TAID);
-    if (*TAID == !0) {
-        if (*TAID == !getpid()) {
+    if (*TAID == 0) {
+        unlocksem(semid, SEM_TAID);
+        return get_in(key, res);
+    } else {
+        if (*TAID == getpid()) {
+            unlocksem(semid, SEM_TAID);
+            return get_in(key, res);
+        } else {
             unlocksem(semid, SEM_TAID);
             waitzero(semid, SEM_Trans);
+            return get_in(key, res);
         }
-    } else {
-        unlocksem(semid, SEM_TAID);
     }
 
+//    clearArray(res);
+//    int i = 0;
+//    log_debug("locksem(semid, SEM_Store);");
+//    locksem(semid, SEM_Store);
+//    if(strcmp(keyValStore[i].key, "\0") != 0) {
+//        log_info(":get Erstes Element hat den Wert: %s", keyValStore[i].key);
+//        // Wir suchen in der Kette, ob das Element vorhanden ist.
+//        do{
+//            if(strcmp(keyValStore[i].key, key) == 0) {
+//                strcpy(res, keyValStore[i].value);
+//                log_info(":get Gesuchter Key wurde gefunden: %s", keyValStore[i].key);
+//                log_debug("unlocksem(semid, SEM_Store);");
+//                unlocksem(semid, SEM_Store);
+//                return 0;
+//            }
+//            i++;
+//            log_info(":get Nächstes Element hat den neuen Wert: %s", keyValStore[i].key);
+//        } while ((strcmp(keyValStore[i].key, "\0") != 0));
+//        log_debug("unlocksem(semid, SEM_Store);");
+//        unlocksem(semid, SEM_Store);
+//        log_info(":get Key wurde nicht gefunden Key: %s",key);
+//        return -2;
+//    }
+//    else {
+//        log_info(":get LinkedList ist leer");
+//        log_debug("unlocksem(semid, SEM_Store);");
+//        unlocksem(semid, SEM_Store);
+//        return -2;
+//    }
+}
+
+int del_in(char* key) {
     int i = 0;
     log_debug("locksem(semid, SEM_Store);");
     locksem(semid, SEM_Store);
@@ -305,6 +360,61 @@ int del(char* key){
         return -1;
     }
 }
+
+int del(char* key) {
+
+    locksem(semid, SEM_TAID);
+    if (*TAID == 0) {
+        unlocksem(semid, SEM_TAID);
+        return del_in(key);
+    } else {
+        if (*TAID == getpid()) {
+            unlocksem(semid, SEM_TAID);
+            return del_in(key);
+        } else {
+            unlocksem(semid, SEM_TAID);
+            waitzero(semid, SEM_Trans);
+            return del_in(key);
+        }
+    }
+}
+
+//    int i = 0;
+//    log_debug("locksem(semid, SEM_Store);");
+//    locksem(semid, SEM_Store);
+//    if(strcmp(keyValStore[i].key, "\0") != 0) {
+//        log_info(":del Erstes Element hat den Wert: %s", keyValStore[i].key);
+//        // Wir suchen in der Kette, ob das Element vorhanden ist.
+//        do{
+//            if(strcmp(keyValStore[i].key, key) == 0) {
+//                int j = i+1;
+//
+//                do{
+//                    strcpy(keyValStore[i].key, keyValStore[j].key);
+//                    strcpy(keyValStore[i].value, keyValStore[j].value);
+//                    j++;
+//                    i++;
+//                }while ((strcmp(keyValStore[j-1].key, "\0") != 0));
+//                log_debug(":del Gesuchter Key wurde gefunden und gelöscht!");
+//                (*keyValNum)--;
+//                unlocksem(semid, SEM_Store);
+//                return 0;
+//            }
+//            i++;
+//            log_info(":del Nächstes Element hat den neuen Wert: %s", keyValStore[i].key);
+//        } while ((strcmp(keyValStore[i].key, "\0") != 0));
+//        log_debug("unlocksem(semid, SEM_Store);");
+//        unlocksem(semid, SEM_Store);
+//        log_info(":del Key wurde nicht gefunden Key: %s",key);
+//        return -1;
+//    }
+//    else {
+//        log_debug("unlocksem(semid, SEM_Store);");
+//        unlocksem(semid, SEM_Store);
+//        log_info(":del LinkedList ist leer");
+//        return -1;
+//    }
+//}
 //void beginExklusive() {
 //
 //}
@@ -312,11 +422,12 @@ int del(char* key){
 void beginExklusive(int ID) {
     log_debug(":beginExklusive ID = %d", ID);
     locksem(semid, SEM_TAID);
-    *TAID = ID;
-    log_debug(":beginExklusive TAID = %d", *TAID);
-    locksem(semid, SEM_Trans);
+    if (*TAID == 0) {
+        *TAID = ID;
+        unlocksem(semid, SEM_Trans);
+        unlocksem(semid, SEM_TAID);
+    }
     unlocksem(semid, SEM_TAID);
-    return;
 };
 
 //int beginExklusive(char *f){
@@ -338,10 +449,9 @@ void endExklusive(int ID) {
     locksem(semid, SEM_TAID);
     if (ID == *TAID) {
         *TAID = 0;
-        unlocksem(semid, SEM_Trans);
+        locksem(semid, SEM_Trans);
     }
     unlocksem(semid, SEM_TAID);
-    return;
 };
 
 //void endExklusive(char *f){

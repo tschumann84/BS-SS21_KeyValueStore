@@ -106,6 +106,7 @@ int interface(char* in, char* out){
         log_info(":interface Exklusive Transaktion gestartet (BEG)");
         log_debug(":interface Prozess ID %d", getpid());
         beginExklusive(getpid());
+        return 0;
     }
     /********
        END
@@ -114,6 +115,7 @@ int interface(char* in, char* out){
         log_info(":interface Exklusive Transaktion beendet (END)");
         log_debug(":interface Prozess ID %d", getpid());
         endExklusive(getpid());
+        return 0;
     }
     /********
       QUIT
