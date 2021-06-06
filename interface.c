@@ -106,6 +106,7 @@ int interface(char* in, char* out){
         log_info(":interface Exklusive Transaktion gestartet (BEG)");
         log_debug(":interface Prozess ID %d", getpid());
         beginExklusive(getpid());
+        snprintf(out, BUFSIZE, "BEG\r\n", key, value);
         return 0;
     }
     /********
@@ -115,6 +116,7 @@ int interface(char* in, char* out){
         log_info(":interface Exklusive Transaktion beendet (END)");
         log_debug(":interface Prozess ID %d", getpid());
         endExklusive(getpid());
+        snprintf(out, BUFSIZE, "END\r\n", key, value);
         return 0;
     }
     /********

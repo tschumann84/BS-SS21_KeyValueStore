@@ -183,7 +183,7 @@ int put_in(char* key, char* value) {
 
 int put(char* key, char* value){
     log_info(":put start");
-    log_debug(":put key %c | value %c", key, value);
+    log_debug(":put key %s | value %s", key, value);
     log_info(":put Überprüfung ob Transaktion aktiv.");
     locksem(semid, SEM_TAID);
     if (*TAID == 0) {

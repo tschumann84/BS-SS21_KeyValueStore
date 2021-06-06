@@ -20,7 +20,7 @@
 #include "interface.h"
 
 #define PORT 5678
-#define SERVER_BACKLOG 5
+#define SERVER_BACKLOG 15
 
 int server_start() {
     int rfd; // Rendevouz-Descriptor
@@ -85,13 +85,14 @@ int server_start() {
                 //Socket wird eingelesen
                 bytes_read = read(cfd, in, BUFSIZE);
                 log_debug(":server_start %d bytes empfangen", bytes_read);
+                log_debug("Rohdaten (%s:%d): %s",inet_ntoa(client.sin_addr), ntohs(client.sin_port),in);
 
                 int returnCodeInterface = interface(in, out);
                 //Überprüfung ob Socket geschlossen werden soll.
                 if (returnCodeInterface==-3){
                     log_info(":server_start Verbindung geschlossen von: %s:%d", inet_ntoa(client.sin_addr),
                              ntohs(client.sin_port));
-                    shutdown(cfd, 2);
+                    //shutdown(cfd, 2);
                     close(cfd);
                     break;
                 }else {
