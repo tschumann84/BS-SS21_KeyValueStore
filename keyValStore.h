@@ -42,9 +42,9 @@ struct keyValKomb {
 //#define SHAREDMEMSIZE ((STORESIZE*sizeof(keyValKomb)).int)
 #define SHAREDMEMSIZE (((LENGTH_KEY+LENGTH_VALUE)*STORESIZE)+(2*sizeof(int)))
 #define BUFFERSIZE (SHAREDMEMSIZE - sizeof(int))
-#define SEM_Store 0
-#define SEM_Trans 1
-#define SEM_TAID 2
+#define SEM_Store 0 // SEM für KeyValStore Array
+#define SEM_Trans 1 // SEM für PID im aktuellen Transaktionprozess
+#define SEM_TAID 2 // SEM für "Wait for Zero" während Transaktion
 /* ---------- Bei BSD-UNIXen auskommentieren ------------ */
 #if defined(__GNU_LIBRARY__) && !defined(_SEM_SEMUN_UNDEFINED)
 /* union semun is defined by including <sys/sem.h> */

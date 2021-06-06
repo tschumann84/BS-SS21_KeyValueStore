@@ -180,40 +180,52 @@ void sharedStore (void) {
     return;
 }
 int put_in(char* key, char* value) {
+    log_info(":put_in Start");
     //Checken ob das Element bereits in der Liste ist.
     int i;
-    log_debug(":put locksem(semid, SEM_Store);");
+    //log_debug(":put_in locksem(semid, SEM_Store);");
     locksem(semid, SEM_Store);
+    log_info(":put_in Überprüfe ob Key bereits Vorhanden.");
     for (i = 0; i < (*keyValNum); i++) {
         if (strcmp(keyValStore[i].key, key) == 0) {
             strcpy(keyValStore[i].value, value);
-            log_debug(":put unlocksem(semid, SEM_Store);");
+            //log_debug(":put_in unlocksem(semid, SEM_Store);");
             unlocksem(semid, SEM_Store);
+            log_info(":put_in Key gefunden und überschrieben.");
             return 0;
         }
     }
 // Wenn nicht in der Liste, an die letzte Stelle schreiben.
+    log_info(":put_in Key nicht vorhanden, wird angehängt.");
     if (((*keyValNum) + 1) < STORESIZE) {
         strcpy(keyValStore[(*keyValNum)].key, key);
         strcpy(keyValStore[(*keyValNum)].value, value);
-        log_debug(":put unlocksem(semid, SEM_Store);");
-        unlocksem(semid, SEM_Store);
+        //log_debug(":put_in unlocksem(semid, SEM_Store);");
         (*keyValNum)++;
+        unlocksem(semid, SEM_Store);
     }
     return 0;
 }
 
 int put(char* key, char* value){
+    log_info(":put start");
+    log_debug(":put key %c | value %c", key, value);
+    log_info(":put Überprüfung ob Transaktion aktiv.");
     locksem(semid, SEM_TAID);
     if (*TAID == 0) {
+        log_info(":put Keine Transaktion aktiv, call put.");
         unlocksem(semid, SEM_TAID);
         return put_in(key, value);
     } else {
         if (*TAID == getpid()) {
+            log_info(":put Transaktion aktiv, eigene PID gleich TransaktionID, call put.");
             unlocksem(semid, SEM_TAID);
+            log_debug(":put Eigene PID (%d) == TAID (%d)", getpid(), *TAID);
             return put_in(key, value);
         } else {
+            log_info(":put Transaktion aktiv, eigene PID ungleich TransaktionID, wartet auf Transaktionsende.");
             unlocksem(semid, SEM_TAID);
+            log_debug(":put Eigene PID (%d) != TAID (%d)\", getpid(), *TAID");
             waitzero(semid, SEM_Trans);
             return put_in(key, value);
         }
@@ -243,9 +255,10 @@ int put(char* key, char* value){
 
 }
 int get_in(char* key, char* res) {
+    log_info(":get_in start");
     clearArray(res);
     int i = 0;
-    log_debug("locksem(semid, SEM_Store);");
+    //log_debug("locksem(semid, SEM_Store);");
     locksem(semid, SEM_Store);
     if(strcmp(keyValStore[i].key, "\0") != 0) {
         log_info(":get Erstes Element hat den Wert: %s", keyValStore[i].key);
@@ -276,17 +289,24 @@ int get_in(char* key, char* res) {
 
 
 int get(char* key, char* res){
-
+    log_info(":get start");
+    log_debug(":get key %c | res %c", key, res);
+    log_info(":get Überprüfung ob Transaktion aktiv.");
     locksem(semid, SEM_TAID);
     if (*TAID == 0) {
+        log_info(":get Keine Transaktion aktiv, call put.");
         unlocksem(semid, SEM_TAID);
         return get_in(key, res);
     } else {
         if (*TAID == getpid()) {
+            log_info(":get Transaktion aktiv, eigene PID gleich TransaktionID, call put.");
             unlocksem(semid, SEM_TAID);
+            log_debug(":get Eigene PID (%d) == TAID (%d)", getpid(), *TAID);
             return get_in(key, res);
         } else {
+            log_info(":get Transaktion aktiv, eigene PID ungleich TransaktionID, wartet auf Transaktionsende.");
             unlocksem(semid, SEM_TAID);
+            log_debug(":get Eigene PID (%d) != TAID (%d)\", getpid(), *TAID");
             waitzero(semid, SEM_Trans);
             return get_in(key, res);
         }
@@ -324,14 +344,16 @@ int get(char* key, char* res){
 }
 
 int del_in(char* key) {
+    log_info(":del_in start");
     int i = 0;
-    log_debug("locksem(semid, SEM_Store);");
+    //log_debug("locksem(semid, SEM_Store);");
+    log_info(":del_in suche nach Key.");
     locksem(semid, SEM_Store);
     if(strcmp(keyValStore[i].key, "\0") != 0) {
-        log_info(":del Erstes Element hat den Wert: %s", keyValStore[i].key);
         // Wir suchen in der Kette, ob das Element vorhanden ist.
         do{
             if(strcmp(keyValStore[i].key, key) == 0) {
+                log_info(":del_in Key gefunden.");
                 int j = i+1;
 
                 do{
@@ -339,40 +361,46 @@ int del_in(char* key) {
                     strcpy(keyValStore[i].value, keyValStore[j].value);
                     j++;
                     i++;
+                    log_info(":del_in Key gelöscht.");
                 }while ((strcmp(keyValStore[j-1].key, "\0") != 0));
-                log_debug(":del Gesuchter Key wurde gefunden und gelöscht!");
                 (*keyValNum)--;
                 unlocksem(semid, SEM_Store);
                 return 0;
             }
             i++;
-            log_info(":del Nächstes Element hat den neuen Wert: %s", keyValStore[i].key);
         } while ((strcmp(keyValStore[i].key, "\0") != 0));
-        log_debug("unlocksem(semid, SEM_Store);");
+        //log_debug("unlocksem(semid, SEM_Store);");
         unlocksem(semid, SEM_Store);
-        log_info(":del Key wurde nicht gefunden Key: %s",key);
+        log_info(":del_in Key nicht gefunden.");
         return -1;
     }
     else {
-        log_debug("unlocksem(semid, SEM_Store);");
+        //log_debug("unlocksem(semid, SEM_Store);");
         unlocksem(semid, SEM_Store);
-        log_info(":del LinkedList ist leer");
+        log_info(":del_in keine Keys im Store.");
         return -1;
     }
 }
 
 int del(char* key) {
-
+    log_info(":del start");
+    log_debug(":del key %c | res %c", key, res);
+    log_info(":del Überprüfung ob Transaktion aktiv.");
     locksem(semid, SEM_TAID);
     if (*TAID == 0) {
+        log_info(":del Keine Transaktion aktiv, call put.");
         unlocksem(semid, SEM_TAID);
         return del_in(key);
     } else {
         if (*TAID == getpid()) {
+            log_info(":del Transaktion aktiv, eigene PID gleich TransaktionID, call put.");
             unlocksem(semid, SEM_TAID);
+            log_debug(":del Eigene PID (%d) == TAID (%d)", getpid(), *TAID);
             return del_in(key);
         } else {
+            log_info(":del Transaktion aktiv, eigene PID ungleich TransaktionID, wartet auf Transaktionsende.");
             unlocksem(semid, SEM_TAID);
+            log_debug(":del Eigene PID (%d) != TAID (%d)\", getpid(), *TAID");
             waitzero(semid, SEM_Trans);
             return del_in(key);
         }
