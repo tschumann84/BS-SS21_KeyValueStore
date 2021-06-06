@@ -92,7 +92,7 @@ int server_start() {
                 if (returnCodeInterface==-3){
                     log_info(":server_start Verbindung geschlossen von: %s:%d", inet_ntoa(client.sin_addr),
                              ntohs(client.sin_port));
-                    //shutdown(cfd, 2);
+                    shutdown(cfd, 2);
                     close(cfd);
                     break;
                 }else {
