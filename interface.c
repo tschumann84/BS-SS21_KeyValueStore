@@ -107,9 +107,9 @@ int interface(char* in, char* out){
 
         if(beginExklusive(getpid())== 0){
             log_info(":interface Exklusive Transaktion gestartet (BEG)");
-            snprintf(out, BUFSIZE, "BEG\r\n", key, value);
+            snprintf(out, BUFSIZE, "BEG\r\n");
         } else{
-            snprintf(out, BUFSIZE, "Error BEG exklusive transaction already running\r\n", key, value);
+            snprintf(out, BUFSIZE, "Error BEG exklusive transaction already running\r\n");
         }
         return 0;
     }
@@ -121,9 +121,9 @@ int interface(char* in, char* out){
 
         if(endExklusive(getpid())==0){
             log_info(":interface Exklusive Transaktion beendet (END)");
-            snprintf(out, BUFSIZE, "END\r\n", key, value);
+            snprintf(out, BUFSIZE, "END\r\n");
         } else{
-            snprintf(out, BUFSIZE, "Error END missing authorization\r\n", key, value);
+            snprintf(out, BUFSIZE, "Error END missing authorization\r\n");
         }
         return 0;
     }
