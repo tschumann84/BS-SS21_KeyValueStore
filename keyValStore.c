@@ -199,7 +199,7 @@ int put(char* key, char* value){
         } else {
             log_info(":put Transaktion aktiv, eigene PID ungleich TransaktionID, wartet auf Transaktionsende.");
             unlocksem(semid, SEM_TAID);
-            log_debug(":put Eigene PID (%d) != TAID (%d)\", getpid(), *TAID");
+            log_debug(":put Eigene PID (%d) != TAID (%d)", getpid(), *TAID);
             waitzero(semid, SEM_Trans);
             return put_in(key, value);
         }
@@ -266,7 +266,7 @@ int get_in(char* key, char* res) {
 
 int get(char* key, char* res) {
     log_info(":get start");
-    log_debug(":get key %c | res %c", key, res);
+    log_debug(":get key %s | res %s", key, res);
     log_info(":get Überprüfung ob Transaktion aktiv.");
     locksem(semid, SEM_TAID);
     if (*TAID == 0) {
@@ -427,15 +427,18 @@ void beginExklusive() {
 }
 */
 
-void beginExklusive(int ID) {
+int beginExklusive(int ID) {
     log_debug(":beginExklusive ID = %d", ID);
     locksem(semid, SEM_TAID);
     if (*TAID == 0) {
         *TAID = ID;
         unlocksem(semid, SEM_Trans);
         unlocksem(semid, SEM_TAID);
+        return 0;
+    } else{
+        unlocksem(semid, SEM_TAID);
+        return -1;
     }
-    unlocksem(semid, SEM_TAID);
 };
 
 /*
@@ -455,13 +458,20 @@ int beginExklusive(char *f){
 };
 */
 
-void endExklusive(int ID) {
+int endExklusive(int ID) {
+    log_debug(":endExklusive ID = %d", ID);
     locksem(semid, SEM_TAID);
     if (ID == *TAID) {
         *TAID = 0;
         locksem(semid, SEM_Trans);
+        unlocksem(semid, SEM_TAID);
+        log_debug(":endExklusive Return 0");
+        return 0;
+    } else{
+        unlocksem(semid, SEM_TAID);
+        log_debug(":endExklusive Return -1");
+        return -1;
     }
-    unlocksem(semid, SEM_TAID);
 };
 
 /*

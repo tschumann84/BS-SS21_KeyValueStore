@@ -11,6 +11,12 @@
     int del(char* key)
         -1 Key nicht gefunden
          0 Key gelöscht
+    int beginExklusive(int ID)
+        -1 Exklusive Transaktion belegt
+        0 Exklusive Transaktion erfolgreich gestartet.
+    int endExklusive(int ID)
+        -1 Fehlende Berechtigung
+         0 Exklusive Transaktion erfolgreich beendet.
 # main.c
     int main()
         -2 PID vorhanden
