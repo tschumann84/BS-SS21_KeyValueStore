@@ -3,6 +3,7 @@
 //
 
 #include "keyValStore.h"
+#include "sub.c"
 
 int semid, shmid;
 int* keyValNum;
@@ -182,7 +183,7 @@ int put_in(char* key, char* value) {
     return 0;
 }
 
-int put(char* key, char* value){
+int put(char* key, char* value) {
     log_info(":put start");
     log_debug(":put key %s | value %s", key, value);
     log_info(":put Überprüfung ob Transaktion aktiv.");
@@ -205,6 +206,8 @@ int put(char* key, char* value){
             return put_in(key, value);
         }
     }
+    schlange()
+}
 
 /*
         //Checken ob das Element bereits in der Liste ist.
@@ -230,7 +233,6 @@ int put(char* key, char* value){
         return 0;
 */
 
-}
 int get_in(char* key, char* res) {
     log_info(":get_in start");
     clearArray(res);
