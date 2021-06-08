@@ -53,7 +53,7 @@ int desub(char* key, int id){
     if(strcmp(subliste[i].key, "\0") != 0) {
         // Wir suchen in der Kette, ob das Element vorhanden ist.
         do{
-            if(strcmp(subliste[i].key, key) == 0) {
+            if(strcmp(subliste[i].key, key) == 0 && subliste[i].id, id) {
                 log_info(":desub Key gefunden.");
                 int j = i+1;
 
