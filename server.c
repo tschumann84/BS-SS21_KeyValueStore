@@ -19,6 +19,7 @@
 #include <string.h>
 #include "interface.h"
 #include "keyValStore.h"
+#include "sub.h"
 
 #define PORT 5678
 #define SERVER_BACKLOG 15
@@ -125,6 +126,10 @@ int server_start() {
                     shutdown(cfd, 2);
                     close(cfd);
                     break;
+                }else if(returnCodeInterface==10){
+                    char keyout[BUFSIZE];
+                    getKey(in,keyout);
+                    sub(keyout,cfd);
                 }else {
                     write(cfd, out, strlen(out));
                 }

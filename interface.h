@@ -6,4 +6,5 @@
 #define BS21_INTERFACE_H
 int interface(char* in, char* out);
 int clearArray(char* array);
+getKey(char* in, char* out);
 #endif //BS21_INTERFACE_H

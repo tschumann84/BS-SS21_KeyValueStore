@@ -114,6 +114,13 @@ int interface(char* in, char* out){
         return 0;
     }
     /********
+       SUB
+    *******/
+    else if (startsWith("SUB",in)){
+        log_debug(":interface Prozess ID %d", getpid());
+        return 10;
+    }
+    /********
        END
     *******/
     else if (startsWith("END",in)){

@@ -3,21 +3,27 @@
 #include "sys/types.h"
 #include "sys/ipc.h"
 #include "sys/msg.h"
+#include "server.h"
 
 struct liste {
     char key[LENGTH_KEY];
-    int id;
+    int cfd;
 };
 struct liste* subliste;
 
-int pub(char* key, char* res){
+int pub(char* key, char* res, int funktion){
+    char out[BUFSIZE];
     int i = 0;
+    switch(funktion){
+        case 0: snprintf(out, BUFSIZE, "PUT:%s:%s\r\n",key,res); break;
+        case 1: snprintf(out, BUFSIZE, "DEL:%s\r\n",key); break;
+    }
     if(strcmp(subliste[i].key, "\0") != 0) {
         do {
             if (strcmp(subliste[i].key, key) == 0) {
 //                for( n = 0; n < ServerSocket->Socket->ActiveConnections; n++ )
 //                {
-//                    ServerSocket->Socket->Connections[n]->SendText("Hello");
+//                    ServerSocket->Socket->Connections[n]->SendText("%out",out);
 //                }
                 log_info(":sub Nachricht gedeset bei Key: %s",subliste[i].key);
             }
@@ -31,7 +37,7 @@ int pub(char* key, char* res){
     }
 }
 
-int sub(char* key, int id) {
+int sub(char* key, int cfd) {
     char res = "";
     if(get(key, res)==1){
 
@@ -41,7 +47,7 @@ int sub(char* key, int id) {
     if(strcmp(subliste[i].key, "\0") != 0) {
         log_info(":sub Liste leer, füge neues Element ein");
         strcpy(subliste[i].key, key);
-        subliste[i].id = id;
+        subliste[i].cfd = cfd;
         log_info(":sub wurde erstellt.");
         return 0;
     }
@@ -50,7 +56,7 @@ int sub(char* key, int id) {
         do{
         if(strcmp(subliste[i].key, "\0") != 0) {
             strcpy(subliste[i].key, key);
-            subliste[i].id = id;
+            subliste[i].cfd = cfd;
             //0 Byte an ende dran gesetzt
             strcpy(subliste[j].key, "\0");
         }
@@ -66,20 +72,20 @@ int sub(char* key, int id) {
     }
 }
 
-int desub(char* key, int id){
+int desub(char* key, int cfd){
     log_info(":desub start");
     int i = 0;
     log_info(":desub suche nach Key.");
     if(strcmp(subliste[i].key, "\0") != 0) {
         // Wir suchen in der Kette, ob das Element vorhanden ist.
         do{
-            if(strcmp(subliste[i].key, key) == 0 && subliste[i].id, id) {
+            if(strcmp(subliste[i].key, key) == 0 && subliste[i].cfd, cfd) {
                 log_info(":desub Key gefunden.");
                 int j = i+1;
 
                 do{
                     strcpy(subliste[i].key, subliste[j].key);
-                    subliste[i].id =subliste[j].id;
+                    subliste[i].cfd =subliste[j].cfd;
                     j++;
                     i++;
                     log_info(":desub Key gelöscht.");
