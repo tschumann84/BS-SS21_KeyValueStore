@@ -38,13 +38,15 @@ int pub(char* key, char* res, int funktion){
 }
 
 int sub(char* key, int cfd) {
-    char res = "";
-    if(get(key, res)==1){
+    char res[LENGTH_VALUE];
+    if(get(key, res)==0){
 
     log_info(":sub start");
     int i = 0;
+        log_info(":sub ich bin hier 0,5");
     //locksem(semid, SEM_Store);
     if(strcmp(subliste[i].key, "\0") != 0) {
+        log_info(":sub ich bin hier 1");
         log_info(":sub Liste leer, füge neues Element ein");
         strcpy(subliste[i].key, key);
         subliste[i].cfd = cfd;
@@ -52,6 +54,7 @@ int sub(char* key, int cfd) {
         return 0;
     }
     else{
+        log_info(":sub ich bin hier 2");
         int j = i+1;
         do{
         if(strcmp(subliste[i].key, "\0") != 0) {
