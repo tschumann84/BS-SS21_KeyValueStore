@@ -10,6 +10,26 @@ struct liste {
 };
 struct liste* subliste;
 
+int pub(char* key, char* res){
+    int i = 0;
+    if(strcmp(subliste[i].key, "\0") != 0) {
+        do {
+            if (strcmp(subliste[i].key, key) == 0) {
+//                for( n = 0; n < ServerSocket->Socket->ActiveConnections; n++ )
+//                {
+//                    ServerSocket->Socket->Connections[n]->SendText("Hello");
+//                }
+                log_info(":sub Nachricht gedeset bei Key: %s",subliste[i].key);
+            }
+            i++;
+        }while ((strcmp(subliste[i].key, "\0") != 0));
+
+    }
+    else {
+        log_info(":sub Liste war Leer, keine Nachricht gesendet");
+        return 0;
+    }
+}
 
 int sub(char* key, int id) {
     char res = "";
@@ -21,7 +41,7 @@ int sub(char* key, int id) {
     if(strcmp(subliste[i].key, "\0") != 0) {
         log_info(":sub Liste leer, füge neues Element ein");
         strcpy(subliste[i].key, key);
-        strcpy(subliste[i].id, id);
+        subliste[i].id = id;
         log_info(":sub wurde erstellt.");
         return 0;
     }
@@ -30,7 +50,7 @@ int sub(char* key, int id) {
         do{
         if(strcmp(subliste[i].key, "\0") != 0) {
             strcpy(subliste[i].key, key);
-            strcpy(subliste[i].id, id);
+            subliste[i].id = id;
             //0 Byte an ende dran gesetzt
             strcpy(subliste[j].key, "\0");
         }
@@ -59,7 +79,7 @@ int desub(char* key, int id){
 
                 do{
                     strcpy(subliste[i].key, subliste[j].key);
-                    strcpy(subliste[i].id, subliste[j].id);
+                    subliste[i].id =subliste[j].id;
                     j++;
                     i++;
                     log_info(":desub Key gelöscht.");
