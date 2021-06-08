@@ -77,6 +77,10 @@ static int safesemop (int semid, struct sembuf *sops, unsigned nsops);
 void sharedStore (void);
 static int DeleteSemid = 0;
 static int DeleteShmid = 0;
+void delete (void);
+int saveBlockShutdown(int ID);
+int saveUnblockShutdown(int ID);
+
 
 int beginExklusive(int ID);
 int endExklusive(int ID);

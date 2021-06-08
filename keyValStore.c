@@ -55,20 +55,21 @@ int del(char* key);
 void sharedStore (void);
 //int beginExklusive(char *f);
 //void endExklusive(char *f);
-static void delete (void);
+void delete (void);
 // ### Private Funktionen für Hauptfunktionen
 int put_in(char* key, char* value);
 int get_in(char* key, char* res);
 int del_in(char* key);
 
 
-static void delete (void) {
+void delete (void) {
     log_debug(":delete Start");
     int res;
     log_info(":delete Server wird beendet...");
     log_debug(":delete Lösche Semaphore semid: %d", DeleteShmid);
     if(semctl (DeleteSemid, 0, IPC_RMID, 0) == -1) {
         log_error(":delete Fehler beim löschen des Semaphores.");
+
     } else {
         log_info(":delete Semaphoren gelöscht.");
     }
@@ -141,7 +142,7 @@ void sharedStore (void) {
     *TAID = 0;
 //    keyValStore = (struct keyValKomb*) ((void*)shm_addr+sizeof(int))
     keyValStore = (struct keyValKomb*) ((void*)shm_addr+sizeof(int)+sizeof(int));
-    log_debug(":sharedStore keyValStore: %d", keyValStore);
+    log_debug(":sharedStore keyValStore: %s", keyValStore);
     if(keyValStore == (void *) -1) {
         log_error(":sharedStore Fehler, keyValStore konnte nicht erstellt werden.");
     } else {
@@ -437,6 +438,36 @@ int beginExklusive(int ID) {
         return 0;
     } else{
         unlocksem(semid, SEM_TAID);
+        return -1;
+    }
+};
+
+int saveBlockShutdown(int ID) {
+    log_debug(":saveBlockShutdown ID = %d", ID);
+    waitzero(semid, SEM_Trans);
+    locksem(semid, SEM_TAID);
+
+    *TAID = ID;
+    unlocksem(semid, SEM_TAID);
+    unlocksem(semid, SEM_Trans);
+    locksem(semid, SEM_Store);
+    return 0;
+};
+
+int saveUnblockShutdown(int ID) {
+    log_debug(":saveUnblockShutdown ID = %d", ID);
+    locksem(semid, SEM_TAID);
+
+    if (ID == *TAID) {
+        *TAID = 0;
+        locksem(semid, SEM_Trans);
+        unlocksem(semid, SEM_TAID);
+        unlocksem(semid, SEM_Store);
+        log_debug(":saveUnblockShutdown Return 0");
+        return 0;
+    } else {
+        unlocksem(semid, SEM_TAID);
+        log_debug(":saveUnblockShutdown Return -1");
         return -1;
     }
 };

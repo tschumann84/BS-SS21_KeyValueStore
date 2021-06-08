@@ -18,12 +18,26 @@
 #include "log/log.h"
 #include <string.h>
 #include "interface.h"
+#include "keyValStore.h"
 
 #define PORT 5678
 #define SERVER_BACKLOG 15
 
+int rfd;
+
+int server_stop(int sigid)
+{
+    log_fatal(":stopServer wurde aufgerufen");
+    saveBlockShutdown(getpid());
+    close(rfd);
+    saveUnblockShutdown(getpid());
+    delete();
+    log_fatal(":stopServer Dings hat geklappt.");
+
+    exit(EXIT_SUCCESS);
+}
+
 int server_start() {
-    int rfd; // Rendevouz-Descriptor
     int cfd; // Verbindungs-Descriptor
     struct sockaddr_in client; // Socketadresse eines Clients
     socklen_t client_len; // Länge der Client-Daten
@@ -34,6 +48,7 @@ int server_start() {
     pid_t childpid;
 
     // Socket erstellen
+
     rfd = socket(AF_INET, SOCK_STREAM, 0);
     if (rfd < 0 ){
         log_fatal(":server_start Socket konnte nicht erstellt werden");
@@ -66,6 +81,7 @@ int server_start() {
     } else{
         log_fatal(":server_start Socket lauscht nicht, möglicherweise zu viele Clients");
     }
+
 
     while (true) {
         // Verbindung eines Clients wird entgegengenommen
