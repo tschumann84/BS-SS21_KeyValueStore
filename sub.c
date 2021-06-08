@@ -10,6 +10,23 @@ struct liste {
 };
 struct liste* subliste;
 
+int pub(char* key, char* res){
+    int i = 0;
+    if(strcmp(subliste[i].key, "\0") != 0) {
+        do {
+            if (strcmp(subliste[i].key, key) == 0) {
+                //sende Nachricht an Suber
+                log_info("Sub Nachricht gedeset bei Key: %s",subliste[i].key);
+            }
+            i++;
+        }while ((strcmp(subliste[i].key, "\0") != 0));
+
+    }
+    else {
+        log_info("Sub Liste war Leer, keine Nachricht gesendet");
+        return 0;
+    }
+}
 
 int sub(char* key, int id) {
     char res = "";
