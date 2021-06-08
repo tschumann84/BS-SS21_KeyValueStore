@@ -83,9 +83,9 @@ void delete (void) {
     }
     return;
 }
-static void sigdelete (int signum) {
-    exit(EXIT_FAILURE);
-}
+//static void sigdelete (int signum) {
+//    exit(EXIT_FAILURE);
+//}
 void sharedStore (void) {
     log_debug(":sharedStore Start");
     union semun sunion;
@@ -108,7 +108,7 @@ void sharedStore (void) {
 
 
 // SIGHANDLER einrichten
-    my_signal(SIGINT, &sigdelete);
+//    my_signal(SIGINT, &sigdelete);
 // Semaphor init
     sunion.val = 1;
     safesemctl(semid, SEM_Store, SETVAL, sunion);

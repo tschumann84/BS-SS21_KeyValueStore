@@ -9,7 +9,9 @@ int main() {
     memset(&action, 0, sizeof(struct sigaction));
     action.sa_handler = (__sighandler_t) server_stop;
     sigaction(SIGTERM, &action, NULL);
-    sigaction(SIGINT, &action,NULL);
+    sigaction(SIGINT, &action, NULL);
+
+    //signal(SIGCHLD,SIG_IGN);
 
     /* Logs:
      * Level 0: trace

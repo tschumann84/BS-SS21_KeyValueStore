@@ -27,12 +27,12 @@ int rfd;
 
 int server_stop(int sigid)
 {
-    log_fatal(":stopServer wurde aufgerufen");
+    log_info(":stopServer wurde aufgerufen");
     saveBlockShutdown(getpid());
     close(rfd);
     saveUnblockShutdown(getpid());
     delete();
-    log_fatal(":stopServer Dings hat geklappt.");
+    log_info(":stopServer Server erfolgreich heruntergefahren.");
 
     exit(EXIT_SUCCESS);
 }
