@@ -15,7 +15,10 @@ int pub(char* key, char* res){
     if(strcmp(subliste[i].key, "\0") != 0) {
         do {
             if (strcmp(subliste[i].key, key) == 0) {
-                //sende Nachricht an Suber
+//                for( n = 0; n < ServerSocket->Socket->ActiveConnections; n++ )
+//                {
+//                    ServerSocket->Socket->Connections[n]->SendText("Hello");
+//                }
                 log_info(":sub Nachricht gedeset bei Key: %s",subliste[i].key);
             }
             i++;
