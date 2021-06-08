@@ -3,7 +3,6 @@
 //
 
 #include "keyValStore.h"
-#include "sub.c"
 
 int semid, shmid;
 int* keyValNum;
@@ -206,7 +205,6 @@ int put(char* key, char* value) {
             return put_in(key, value);
         }
     }
-    schlange()
 }
 
 /*

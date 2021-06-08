@@ -18,7 +18,7 @@
         -1 Fehlende Berechtigung
          0 Exklusive Transaktion erfolgreich beendet.
 # main.c
-    int schlange()
+    int main()
         -2 PID vorhanden
         -1 Port in Nutzung
          0 Programm ordentlich beendet
