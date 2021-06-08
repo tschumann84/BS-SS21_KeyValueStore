@@ -6,8 +6,8 @@
 
 int semid, shmid;
 int* keyValNum;
-int* TAID;
 struct keyValKomb* keyValStore;
+int* TAID;
 
 /*
 ### Datenhaltungskonzept
@@ -69,7 +69,6 @@ void delete (void) {
     log_debug(":delete Lösche Semaphore semid: %d", DeleteShmid);
     if(semctl (DeleteSemid, 0, IPC_RMID, 0) == -1) {
         log_error(":delete Fehler beim löschen des Semaphores.");
-
     } else {
         log_info(":delete Semaphoren gelöscht.");
     }

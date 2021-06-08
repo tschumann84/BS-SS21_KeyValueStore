@@ -53,6 +53,7 @@ struct keyValKomb {
 /* union semun is defined by including <sys/sem.h> */
 #else
 /* according to X/OPEN we have to define it ourselves */
+
 union semun {
     int val;                 /* Werte für  SETVAL        */
     struct semid_ds *buf;    /* Puffer IPC_STAT, IPC_SET */
@@ -80,8 +81,6 @@ static int DeleteShmid = 0;
 void delete (void);
 int saveBlockShutdown(int ID);
 int saveUnblockShutdown(int ID);
-
-
 int beginExklusive(int ID);
 int endExklusive(int ID);
 
@@ -112,22 +111,21 @@ static int safesemctl (int semid, int semnum, int cmd, union semun arg) {
     int retval;
     retval = semctl (semid, semnum, cmd, arg);
     if (retval == -1)
-        printf ("Fehler: Semaphor mit ID %d, semnum %d, "
-                "Kommando %d\n", semid, semnum, cmd);
+        log_error(":safesemctl Semaphor mit ID %d, semnum %d, Kommando %d",semid, semnum, cmd);
     return retval;
 }
 static int safesemget (key_t key, int nsems, int semflg) {
     int retval;
     retval = semget (key, nsems, semflg);
     if (retval == -1)
-        printf ("Semaphore-Schlüssel %d, nsems %d konnte nicht erstellt werden", key, nsems);
+        log_error(":safesemget Semaphore-Schlüssel %d, nsems %d konnte nicht erstellt werden", key, nsems);
     return retval;
 }
 static int safesemop (int semid, struct sembuf *sops, unsigned nsops) {
     int retval;
     retval = semop (semid, sops, nsops);
     if (retval == -1)
-        printf ("Fehler: Semaphore mit ID %d (%d Operation)\n", semid, nsops);
+        log_error(":safesemop Semaphore mit ID %d (%d Operation)", semid, nsops);
     return retval;
 }
 

@@ -24,28 +24,38 @@
 #define SERVER_BACKLOG 15
 
 int rfd;
+pid_t childpid;
+int cfd; // Verbindungs-Descriptor
+volatile sig_atomic_t schleife = 1;
+
 
 int server_stop(int sigid)
 {
-    log_info(":stopServer wurde aufgerufen");
-    saveBlockShutdown(getpid());
-    close(rfd);
-    saveUnblockShutdown(getpid());
-    delete();
-    log_info(":stopServer Server erfolgreich heruntergefahren.");
-
-    exit(EXIT_SUCCESS);
+    if (childpid !=0){
+        sleep(2);
+        log_info(":stopServer Parent Prozess schließt sich.");
+            saveBlockShutdown(getpid());
+            close(cfd);
+            close(rfd);
+            saveUnblockShutdown(getpid());
+            delete();
+            log_info(":stopServer Server erfolgreich heruntergefahren.");
+            exit(EXIT_SUCCESS);
+    } else{
+            schleife = 0;
+            shutdown(cfd, 2);
+            close(cfd);
+    }
 }
 
+
 int server_start() {
-    int cfd; // Verbindungs-Descriptor
     struct sockaddr_in client; // Socketadresse eines Clients
     socklen_t client_len; // Länge der Client-Daten
 
     char in[BUFSIZE]; // Daten vom Client an den Server
     char out[BUFSIZE]; // Daten vom Server an den Client
     int bytes_read; // Anzahl der Bytes, die der Client geschickt hat
-    pid_t childpid;
 
     // Socket erstellen
 
@@ -83,7 +93,7 @@ int server_start() {
     }
 
 
-    while (true) {
+    while (schleife) {
         // Verbindung eines Clients wird entgegengenommen
         cfd = accept(rfd, (struct sockaddr *) &client, &client_len);
         if (cfd < 0) {
@@ -100,6 +110,10 @@ int server_start() {
 
                 //Socket wird eingelesen
                 bytes_read = read(cfd, in, BUFSIZE);
+                        if (bytes_read < 0){
+                            close(cfd);
+                            break;
+                        }
                 log_debug(":server_start %d bytes empfangen", bytes_read);
                 log_debug("Rohdaten (%s:%d): %s",inet_ntoa(client.sin_addr), ntohs(client.sin_port),in);
 
