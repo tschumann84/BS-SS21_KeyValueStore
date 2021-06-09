@@ -32,32 +32,41 @@ struct sockaddr_in client;
 
 
 
-int server_stop(int sigid)
-{
-    if (childpid !=0){
-        bool done = false;
-        while (done == false){
-            if (getProcCount()==0){
-                saveBlockShutdown(getpid());
-                close(rfd);
-                saveUnblockShutdown(getpid());
-                delete();
-                log_info(":stopServer Server erfolgreich heruntergefahren.");
-                done = true;
-                exit(EXIT_SUCCESS);
-            } else{
-                usleep(4);
-            }
-        }
-    } else{
+int server_stop(int sigid) {
+    //Abfangen des Sonderfalls, dass ein Prozess noch keinen Fork erstellt hat.
+    if ((childpid == 0) && (getProcCount() == 0)) {
         saveBlockShutdown(getpid());
-        schleife = 0;
-        shutdown(cfd, 2);
-        close(cfd);
+        close(rfd);
         saveUnblockShutdown(getpid());
+        delete();
+        log_info(":stopServer Server erfolgreich heruntergefahren. Prozess hatte noch keine Kinder.");
+        exit(EXIT_SUCCESS);
+    } else {
+        //Normalfall
+        if (childpid !=0){
+            bool done = false;
+            while (done == false){
+                if (getProcCount()==0){
+                    saveBlockShutdown(getpid());
+                    close(rfd);
+                    saveUnblockShutdown(getpid());
+                    delete();
+                    log_info(":stopServer Server erfolgreich heruntergefahren.");
+                    done = true;
+                    exit(EXIT_SUCCESS);
+                } else{
+                    usleep(2);
+                }
+            }
+        } else{
+            saveBlockShutdown(getpid());
+            schleife = 0;
+            shutdown(cfd, 2);
+            close(cfd);
+            saveUnblockShutdown(getpid());
+        }
     }
 }
-
 
 int server_start() {
     socklen_t client_len; // Länge der Client-Daten
@@ -106,8 +115,10 @@ int server_start() {
     while (schleife) {
         // Verbindung eines Clients wird entgegengenommen
         cfd = accept(rfd, (struct sockaddr *) &client, &client_len);
-        if (cfd < 0) {
+        if (cfd < 0 && getProcCount()!=0) {
             exit(-1);
+        } else if(cfd <0){
+            return 0;
         }
         incrementProcCount();
         log_info(":server_start Verbindung akzeptiert von: %s:%d. Aktuell laufende Sockets: %i", inet_ntoa(client.sin_addr), ntohs(client.sin_port),getProcCount());
