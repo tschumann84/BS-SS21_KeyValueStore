@@ -24,7 +24,7 @@
 #define TRANSACTION_FILE "/tmp/.ta.file"
 //#define TAID 0
 
-// struct für Schlüssel und Wert zur Speicherung als verkettete List.
+// struct für Schlüssel und Wert
 
 struct keyValKomb {
     char key[LENGTH_KEY];
@@ -36,10 +36,10 @@ struct keyValKomb {
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/sem.h>
-//#include <linux/sem.h>
 #include <sys/shm.h>
 #include <errno.h>
 #include <signal.h>
+//#include <linux/sem.h>
 //#define keyVakKombSize (sizeof(keyValKomb))
 //#define SHMDATASIZE (STORESIZE*keyValKombSize)
 //#define SHAREDMEMSIZE ((STORESIZE*sizeof(keyValKomb)).int)

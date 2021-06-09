@@ -13,8 +13,8 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <netinet/in.h>
-#include <signal.h>
 #include <arpa/inet.h>
+#include <signal.h>
 #include "log/log.h"
 #include <string.h>
 #include "interface.h"
@@ -24,15 +24,12 @@
 #define PORT 5678
 #define SERVER_BACKLOG 15
 
-int rfd;
+int rfd, cfd;
 pid_t childpid;
-int cfd; // Verbindungs-Descriptor
 volatile sig_atomic_t schleife = 1;
 struct sockaddr_in client;
 
-
-
-int server_stop(int sigid) {
+int server_stop() {
     //Abfangen des Sonderfalls, dass ein Prozess noch keinen Fork erstellt hat.
     if ((childpid == 0) && (getProcCount() == 0)) {
         saveBlockShutdown(getpid());
@@ -47,6 +44,7 @@ int server_stop(int sigid) {
             bool done = false;
             while (done == false){
                 if (getProcCount()==0){
+                    log_info(":stopServer Vaterprozess macht den Rest sauber.");
                     saveBlockShutdown(getpid());
                     close(rfd);
                     saveUnblockShutdown(getpid());
@@ -76,7 +74,6 @@ int server_start() {
     int bytes_read; // Anzahl der Bytes, die der Client geschickt hat
 
     // Socket erstellen
-
     rfd = socket(AF_INET, SOCK_STREAM, 0);
     if (rfd < 0 ){
         log_fatal(":server_start Socket konnte nicht erstellt werden");
@@ -94,16 +91,12 @@ int server_start() {
     server.sin_family = AF_INET;
     server.sin_addr.s_addr = INADDR_ANY;
     server.sin_port = htons(PORT);
-
-    client_len = sizeof( (struct sockaddr *) &server);
-
     int brt = bind(rfd, (struct sockaddr *) &server, sizeof(server));
     if (brt < 0 ){
         log_fatal(":server_start Socket konnte nicht gebunden werden");
         exit(-1);
     }
     log_info(":server_start Socket wurde gebunden");
-
 
     // Socket lauschen lassen
     if(listen(rfd, SERVER_BACKLOG)==0){
@@ -112,6 +105,8 @@ int server_start() {
         log_fatal(":server_start Socket lauscht nicht, möglicherweise zu viele Clients");
     }
 
+    // Client_Len initialisieren um abstürze zu verhindern.
+    client_len = sizeof( (struct sockaddr *) &server);
     while (schleife) {
         // Verbindung eines Clients wird entgegengenommen
         cfd = accept(rfd, (struct sockaddr *) &client, &client_len);
@@ -121,7 +116,6 @@ int server_start() {
             return 0;
         }
         incrementProcCount();
-        log_info(":server_start Verbindung akzeptiert von: %s:%d. Aktuell laufende Sockets: %i", inet_ntoa(client.sin_addr), ntohs(client.sin_port),getProcCount());
         if ((childpid = fork()) == 0) {
             close(rfd);
             do{
@@ -135,14 +129,13 @@ int server_start() {
                     break;
                 }
                 log_debug(":server_start %d bytes empfangen", bytes_read);
-                //log_debug("Rohdaten (%s:%d): %s",inet_ntoa(client.sin_addr), ntohs(client.sin_port),in);
                 interface(in, out);
                 write(cfd, out, strlen(out));
             } while (bytes_read > 0);
+
             shutdown(cfd, 2);
             close(cfd);
             decrementProcCount();
-            log_warn(":server_start %i Socket geschlossen. Aktuell noch laufende Sockets: %i", ntohs(client.sin_port), getProcCount());
         }
     }
     close(rfd);
