@@ -35,14 +35,20 @@ struct sockaddr_in client;
 int server_stop(int sigid)
 {
     if (childpid !=0){
-        sleep(2);
-        log_info(":stopServer Parent Prozess schließt sich.");
-            saveBlockShutdown(getpid());
-            close(rfd);
-            saveUnblockShutdown(getpid());
-            delete();
-            log_info(":stopServer Server erfolgreich heruntergefahren.");
-            exit(EXIT_SUCCESS);
+        bool done = false;
+        while (done == false){
+            if (getProcCount()==0){
+                saveBlockShutdown(getpid());
+                close(rfd);
+                saveUnblockShutdown(getpid());
+                delete();
+                log_info(":stopServer Server erfolgreich heruntergefahren.");
+                done = true;
+                exit(EXIT_SUCCESS);
+            } else{
+                usleep(4);
+            }
+        }
     } else{
         saveBlockShutdown(getpid());
         schleife = 0;
@@ -82,7 +88,6 @@ int server_start() {
 
     client_len = sizeof( (struct sockaddr *) &server);
 
-
     int brt = bind(rfd, (struct sockaddr *) &server, sizeof(server));
     if (brt < 0 ){
         log_fatal(":server_start Socket konnte nicht gebunden werden");
@@ -102,14 +107,12 @@ int server_start() {
         // Verbindung eines Clients wird entgegengenommen
         cfd = accept(rfd, (struct sockaddr *) &client, &client_len);
         if (cfd < 0) {
-            log_fatal(":server_start Akzeptieren des Sockets fehlgeschlagen.", inet_ntoa(client.sin_addr), ntohs(client.sin_port));
             exit(-1);
         }
-        log_info(":server_start Verbindung akzeptiert von: %s:%d", inet_ntoa(client.sin_addr), ntohs(client.sin_port));
-
+        incrementProcCount();
+        log_info(":server_start Verbindung akzeptiert von: %s:%d. Aktuell laufende Sockets: %i", inet_ntoa(client.sin_addr), ntohs(client.sin_port),getProcCount());
         if ((childpid = fork()) == 0) {
             close(rfd);
-
             do{
                 clearArray(in);
                 clearArray(out);
@@ -127,7 +130,8 @@ int server_start() {
             } while (bytes_read > 0);
             shutdown(cfd, 2);
             close(cfd);
-            log_warn(":server_start %i Socket geschlossen", ntohs(client.sin_port));
+            decrementProcCount();
+            log_warn(":server_start %i Socket geschlossen. Aktuell noch laufende Sockets: %i", ntohs(client.sin_port), getProcCount());
         }
     }
     close(rfd);

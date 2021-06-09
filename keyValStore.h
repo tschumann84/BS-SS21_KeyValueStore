@@ -43,11 +43,12 @@ struct keyValKomb {
 //#define keyVakKombSize (sizeof(keyValKomb))
 //#define SHMDATASIZE (STORESIZE*keyValKombSize)
 //#define SHAREDMEMSIZE ((STORESIZE*sizeof(keyValKomb)).int)
-#define SHAREDMEMSIZE (((LENGTH_KEY+LENGTH_VALUE)*STORESIZE)+(2*sizeof(int)))
+#define SHAREDMEMSIZE (((LENGTH_KEY+LENGTH_VALUE)*STORESIZE)+(3*sizeof(int)))
 #define BUFFERSIZE (SHAREDMEMSIZE - sizeof(int))
 #define SEM_Store 0 // SEM für KeyValStore Array
 #define SEM_Trans 1 // SEM für PID im aktuellen Transaktionprozess
 #define SEM_TAID 2 // SEM für "Wait for Zero" während Transaktion
+#define SEM_DEL 3 // SEM für sicheren Zugriff auf procCount
 /* ---------- Bei BSD-UNIXen auskommentieren ------------ */
 #if defined(__GNU_LIBRARY__) && !defined(_SEM_SEMUN_UNDEFINED)
 /* union semun is defined by including <sys/sem.h> */
@@ -83,6 +84,9 @@ int saveBlockShutdown(int ID);
 int saveUnblockShutdown(int ID);
 int beginExklusive(int ID);
 int endExklusive(int ID);
+void incrementProcCount();
+void decrementProcCount();
+int getProcCount();
 
 // ### Nebenfunktionen für Shared Memory und Semaphore
 // Vielleicht auch in Header auslagern

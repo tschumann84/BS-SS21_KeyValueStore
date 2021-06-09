@@ -8,6 +8,7 @@ int semid, shmid;
 int* keyValNum;
 struct keyValKomb* keyValStore;
 int* TAID;
+int* procCount;
 
 /*
 ### Datenhaltungskonzept
@@ -63,16 +64,15 @@ int del_in(char* key);
 
 
 void delete (void) {
-    log_debug(":delete Start");
     int res;
     log_warn(":delete Server wird beendet...");
-    log_debug(":delete Lösche Semaphore semid: %d", DeleteShmid);
+    //log_debug(":delete Lösche Semaphore semid: %d", DeleteShmid);
     if(semctl (DeleteSemid, 0, IPC_RMID, 0) == -1) {
         log_error(":delete Fehler beim löschen des Semaphores.");
     } else {
         log_info(":delete Semaphoren gelöscht.");
     }
-    log_debug(":delete Lösche Shared Memory shmid: %d", DeleteShmid);
+    //log_debug(":delete Lösche Shared Memory shmid: %d", DeleteShmid);
     res = shmctl (DeleteShmid, IPC_RMID, NULL);
     if(res == -1) {
         log_error(":delete Fehler beim löschen des Shared Memorys.");
@@ -94,7 +94,7 @@ void sharedStore (void) {
 
 //### Semaphore erstellen
 // semid = safesemget(IPC_PRIVATE, 2, SHM_R | SHM_W );
-    semid = safesemget(IPC_PRIVATE, 3, IPC_CREAT | 0770);
+    semid = safesemget(IPC_PRIVATE, 4, IPC_CREAT | 0770);
     log_debug(":sharedStore Semaphore erstellt semid: %d", semid);
     DeleteSemid = semid;
 // Semaphor beim Beenden löschen
@@ -112,6 +112,7 @@ void sharedStore (void) {
     sunion.val = 1;
     safesemctl(semid, SEM_Store, SETVAL, sunion);
     safesemctl(semid, SEM_TAID, SETVAL, sunion);
+    safesemctl(semid, SEM_DEL, SETVAL, sunion);
     sunion.val = 0;
     safesemctl(semid, SEM_Trans, SETVAL, sunion);
 //### Shared Memory erstellen
@@ -139,8 +140,11 @@ void sharedStore (void) {
     log_info(":sharedStore TAID im shared Memory erstellen...");
     TAID = (int*) ((void*)shm_addr+sizeof(int));
     *TAID = 0;
-//    keyValStore = (struct keyValKomb*) ((void*)shm_addr+sizeof(int))
-    keyValStore = (struct keyValKomb*) ((void*)shm_addr+sizeof(int)+sizeof(int));
+    log_info(":sharedStore procCount im shared Memory erstellen...");
+    procCount = (int*) ((void*)shm_addr+(2*sizeof(int)));
+    *procCount = 0;
+
+    keyValStore = (struct keyValKomb*) ((void*)shm_addr+(3*sizeof(int)));
     log_debug(":sharedStore keyValStore: %s", keyValStore);
     if(keyValStore == (void *) -1) {
         log_error(":sharedStore Fehler, keyValStore konnte nicht erstellt werden.");
@@ -499,6 +503,26 @@ int endExklusive(int ID) {
         return -1;
     }
 };
+
+
+void incrementProcCount(){
+    locksem(semid, SEM_DEL);
+    *procCount = *procCount+1;
+    unlocksem(semid, SEM_DEL);
+}
+
+void decrementProcCount(){
+    locksem(semid, SEM_DEL);
+    *procCount = *procCount-1;
+    unlocksem(semid, SEM_DEL);
+}
+
+int getProcCount(){
+    locksem(semid, SEM_DEL);
+    int ergebnis = *procCount;
+    unlocksem(semid, SEM_DEL);
+    return ergebnis;
+}
 
 /*
 void endExklusive(char *f){
