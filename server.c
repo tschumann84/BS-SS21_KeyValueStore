@@ -38,16 +38,17 @@ int server_stop(int sigid)
         sleep(2);
         log_info(":stopServer Parent Prozess schließt sich.");
             saveBlockShutdown(getpid());
-            close(cfd);
             close(rfd);
             saveUnblockShutdown(getpid());
             delete();
             log_info(":stopServer Server erfolgreich heruntergefahren.");
             exit(EXIT_SUCCESS);
     } else{
-            schleife = 0;
-            shutdown(cfd, 2);
-            close(cfd);
+        saveBlockShutdown(getpid());
+        schleife = 0;
+        shutdown(cfd, 2);
+        close(cfd);
+        saveUnblockShutdown(getpid());
     }
 }
 
@@ -79,6 +80,9 @@ int server_start() {
     server.sin_addr.s_addr = INADDR_ANY;
     server.sin_port = htons(PORT);
 
+    client_len = sizeof( (struct sockaddr *) &server);
+
+
     int brt = bind(rfd, (struct sockaddr *) &server, sizeof(server));
     if (brt < 0 ){
         log_fatal(":server_start Socket konnte nicht gebunden werden");
@@ -94,11 +98,11 @@ int server_start() {
         log_fatal(":server_start Socket lauscht nicht, möglicherweise zu viele Clients");
     }
 
-
     while (schleife) {
         // Verbindung eines Clients wird entgegengenommen
         cfd = accept(rfd, (struct sockaddr *) &client, &client_len);
         if (cfd < 0) {
+            log_fatal(":server_start Akzeptieren des Sockets fehlgeschlagen.", inet_ntoa(client.sin_addr), ntohs(client.sin_port));
             exit(-1);
         }
         log_info(":server_start Verbindung akzeptiert von: %s:%d", inet_ntoa(client.sin_addr), ntohs(client.sin_port));
@@ -121,6 +125,7 @@ int server_start() {
                 interface(in, out);
                 write(cfd, out, strlen(out));
             } while (bytes_read > 0);
+            shutdown(cfd, 2);
             close(cfd);
             log_warn(":server_start %i Socket geschlossen", ntohs(client.sin_port));
         }

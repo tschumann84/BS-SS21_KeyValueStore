@@ -65,7 +65,7 @@ int del_in(char* key);
 void delete (void) {
     log_debug(":delete Start");
     int res;
-    log_info(":delete Server wird beendet...");
+    log_warn(":delete Server wird beendet...");
     log_debug(":delete Lösche Semaphore semid: %d", DeleteShmid);
     if(semctl (DeleteSemid, 0, IPC_RMID, 0) == -1) {
         log_error(":delete Fehler beim löschen des Semaphores.");
@@ -442,7 +442,6 @@ int beginExklusive(int ID) {
 };
 
 int saveBlockShutdown(int ID) {
-    log_debug(":saveBlockShutdown ID = %d", ID);
     waitzero(semid, SEM_Trans);
     locksem(semid, SEM_TAID);
 
@@ -454,7 +453,6 @@ int saveBlockShutdown(int ID) {
 };
 
 int saveUnblockShutdown(int ID) {
-    log_debug(":saveUnblockShutdown ID = %d", ID);
     locksem(semid, SEM_TAID);
 
     if (ID == *TAID) {
@@ -462,11 +460,9 @@ int saveUnblockShutdown(int ID) {
         locksem(semid, SEM_Trans);
         unlocksem(semid, SEM_TAID);
         unlocksem(semid, SEM_Store);
-        log_debug(":saveUnblockShutdown Return 0");
         return 0;
     } else {
         unlocksem(semid, SEM_TAID);
-        log_debug(":saveUnblockShutdown Return -1");
         return -1;
     }
 };
