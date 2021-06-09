@@ -15,7 +15,11 @@
 #include "log/log.h"
 #include "keyValStore.h"
 #include "server.h"
+#include "sub.h"
 #include <unistd.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+
 
 bool startsWith(const char *pre, const char *str);
 int interface(char* in, char* out);
@@ -118,7 +122,16 @@ int interface(char* in, char* out){
     *******/
     else if (startsWith("SUB",in)){
         log_debug(":interface Prozess ID %d", getpid());
-        return 10;
+        int returnCodeKey;
+        returnCodeKey = getKey(in, key);
+
+        switch(returnCodeKey){
+            case -1: snprintf(out, BUFSIZE, "%s", "command_nonexistent\r\n"); return 0;
+            case -2: snprintf(out, BUFSIZE, "%s", "key_too_long\r\n"); return 0;
+        }
+
+        sub(key,getCFD());
+        return 0;
     }
     /********
        END
@@ -138,7 +151,11 @@ int interface(char* in, char* out){
       QUIT
     *******/
     else if (startsWith("QUIT",in)){
-        return -3;
+        log_info(":server_start Verbindung geschlossen von: %s:%d", inet_ntoa(getSocketaddrClient().sin_addr),
+                 ntohs(getSocketaddrClient().sin_port));
+        shutdown(getCFD(), 2);
+        close(getCFD());
+        return 0;
     }
     /*********************
      Unbekannte Eingaben
@@ -235,7 +252,7 @@ int cpyPartOfArray(char* in, char* out, int start, int end){
 }
 
 //Prüft ob der Anfang des Strings pre im String str enthalten ist.
-bool startsWith(const char *pre, const char *str)
+bool startsWith(const char *pre, const   char *str)
 {
     size_t lenpre = strlen(pre),
             lenstr = strlen(str);

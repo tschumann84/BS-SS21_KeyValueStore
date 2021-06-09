@@ -10,4 +10,6 @@
 #define BUFSIZE 1024 // Größe des Buffers
 int server_start();
 int server_stop(int sigid);
+int getCFD();
+struct sockaddr_in getSocketaddrClient();
 #endif //BS21_SERVER_H

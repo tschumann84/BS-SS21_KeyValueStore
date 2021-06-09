@@ -28,6 +28,8 @@ int rfd;
 pid_t childpid;
 int cfd; // Verbindungs-Descriptor
 volatile sig_atomic_t schleife = 1;
+struct sockaddr_in client;
+
 
 
 int server_stop(int sigid)
@@ -51,7 +53,6 @@ int server_stop(int sigid)
 
 
 int server_start() {
-    struct sockaddr_in client; // Socketadresse eines Clients
     socklen_t client_len; // Länge der Client-Daten
 
     char in[BUFSIZE]; // Daten vom Client an den Server
@@ -111,28 +112,14 @@ int server_start() {
 
                 //Socket wird eingelesen
                 bytes_read = read(cfd, in, BUFSIZE);
-                        if (bytes_read < 0){
-                            close(cfd);
-                            break;
-                        }
-                log_debug(":server_start %d bytes empfangen", bytes_read);
-                log_debug("Rohdaten (%s:%d): %s",inet_ntoa(client.sin_addr), ntohs(client.sin_port),in);
-
-                int returnCodeInterface = interface(in, out);
-                //Überprüfung ob Socket geschlossen werden soll.
-                if (returnCodeInterface==-3){
-                    log_info(":server_start Verbindung geschlossen von: %s:%d", inet_ntoa(client.sin_addr),
-                             ntohs(client.sin_port));
-                    shutdown(cfd, 2);
+                if (bytes_read <= 0){
                     close(cfd);
                     break;
-                }else if(returnCodeInterface==10){
-                    char keyout[BUFSIZE];
-                    getKey(in,keyout);
-                    sub(keyout,cfd);
-                }else {
-                    write(cfd, out, strlen(out));
                 }
+                log_debug(":server_start %d bytes empfangen", bytes_read);
+                //log_debug("Rohdaten (%s:%d): %s",inet_ntoa(client.sin_addr), ntohs(client.sin_port),in);
+                interface(in, out);
+                write(cfd, out, strlen(out));
             } while (bytes_read > 0);
             close(cfd);
             log_warn(":server_start %i Socket geschlossen", ntohs(client.sin_port));
@@ -140,4 +127,12 @@ int server_start() {
     }
     close(rfd);
     return 0;
+}
+
+int getCFD(){
+    return cfd;
+}
+
+struct sockaddr_in getSocketaddrClient(){
+    return client;
 }
