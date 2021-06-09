@@ -19,6 +19,7 @@
 #include <unistd.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
+#include <ctype.h>
 
 
 bool startsWith(const char *pre, const char *str);
@@ -176,7 +177,7 @@ int getKey(char* in, char* out){
 
     //Herausfinden wie lang der Key ist
     int keyEnde = keyAnfang;
-    while(in[keyEnde] != '\r' && in[keyEnde] != ' ' && in[keyEnde] != '\0' && in[keyEnde] != '\n'){
+    while(isalnum(in[keyEnde])){
         keyEnde++;
     }
 
@@ -214,7 +215,7 @@ int getValue(char* in, char* out){
 
     //Herausfinden wann der Value endet
     int valueEnde = valueAnfang;
-    while(in[valueEnde] != '\r' && in[valueEnde] != ' ' && in[valueEnde] != '\0' && in[valueEnde] != '\n'){
+    while((isalnum(in[valueEnde])) || (in[valueEnde] == ' ')){
         valueEnde++;
     }
 
