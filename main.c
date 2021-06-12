@@ -3,6 +3,7 @@
 #include "log/log.h"
 #include "keyValStore.h"
 #include "server.h"
+#include "sub.h"
 
 int main() {
     // Signal Handler
@@ -17,6 +18,7 @@ int main() {
 
     //Starten des Servers
     sharedStore();
+    sub_sharedStore();
     server_start();
 
     return 0;

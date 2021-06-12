@@ -124,13 +124,13 @@ void sharedStore (void) {
     log_debug(":sharedStore *KeyValnum %d", *keyValNum);
 
     // Shared Memory keyValStore = Der Bereich für den KeyValStore
-    subshared_memory = (struct liste*) ((void*)shm_addr+(3*sizeof(int))+ 100000);
-    log_debug(":sharedStore keyValStore: %s", subshared_memory);
-    if(subshared_memory == (void *) -1) {
-        log_error(":sharedStore Fehler, keyValStore konnte nicht erstellt werden.");
-    } else {
-        log_info(":sharedStore keyValStore erstellt.");
-    }
+//    subshared_memory = (struct liste*) ((void*)shm_addr+(3*sizeof(int))+ 100000);
+//    log_debug(":sharedStore keyValStore: %s", subshared_memory);
+//    if(subshared_memory == (void *) -1) {
+//        log_error(":sharedStore Fehler, keyValStore konnte nicht erstellt werden.");
+//    } else {
+//        log_info(":sharedStore keyValStore erstellt.");
+//    }
     //log_debug("llllll Größe %i",sizeof(keyValStore));
     //200*500
     //log_debug("lllll Größe %i", sizeof(int));
@@ -193,9 +193,11 @@ int put(char* key, char* value) {
 int get_in(char* key, char* res) {
     log_info(":get_in start");
     clearArray(res);
+    //log_info(":get_in Array leer");
     int i = 0;
     //log_debug("locksem(semid, SEM_Store);");
     locksem(semid, SEM_Store);
+    //log_info(":get_in SEM_Store");
     if(strcmp(keyValStore[i].key, "\0") != 0) {
         log_info(":get Erstes Element hat den Wert: %s", keyValStore[i].key);
         // Wir suchen in der Kette, ob das Element vorhanden ist.

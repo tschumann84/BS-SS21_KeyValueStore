@@ -36,6 +36,7 @@ int server_stop() {
         close(rfd);
         saveUnblockShutdown(getpid());
         delete();
+        sub_delete();
         log_info(":stopServer Server erfolgreich heruntergefahren. Prozess hatte noch keine Kinder.");
         exit(EXIT_SUCCESS);
     } else {
@@ -49,6 +50,7 @@ int server_stop() {
                     close(rfd);
                     saveUnblockShutdown(getpid());
                     delete();
+                    sub_delete();
                     log_info(":stopServer Server erfolgreich heruntergefahren.");
                     done = true;
                     exit(EXIT_SUCCESS);

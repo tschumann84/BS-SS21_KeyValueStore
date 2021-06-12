@@ -1,15 +1,113 @@
 #include "sub.h"
 #include "keyValStore.h"
-#include "sys/types.h"
-#include "sys/ipc.h"
 #include "sys/msg.h"
 #include "server.h"
 
 struct liste* subliste;
-int tatsaechliche_anzahl_subs = 0;
-//int semid, shmid;
+int* tatsaechliche_anzahl_subs;
+int sub_semid, sub_shmid;
 
 
+void sub_delete (void) {
+    int res;
+    //log_debug(":delete Lösche Semaphore semid: %d", DeleteShmid);
+    if(semctl (sub_DeleteSemid, 0, IPC_RMID, 0) == -1) {
+        log_error(":sub_delete Fehler beim löschen des Semaphores.");
+    } else {
+        log_info(":sub_delete Semaphoren gelöscht.");
+    }
+    //log_debug(":delete Lösche Shared Memory shmid: %d", DeleteShmid);
+    res = shmctl (sub_DeleteShmid, IPC_RMID, NULL);
+    if(res == -1) {
+        log_error(":sub_delete Fehler beim löschen des Shared Memorys.");
+        log_debug(":sub_delete shmctl shmid: %d, Kommando %d\n", sub_DeleteShmid, IPC_RMID);
+    } else {
+        log_info(":sub_delete Shared Memory gelöscht");
+    }
+}
+
+void sub_sharedStore (void) {
+    log_debug(":sub_sharedStore Start");
+    union semun sub_union;
+    int res;
+    char *buffer;
+    char* shm_addr;
+
+//### Semaphore erstellen
+    sub_semid = safesemget(IPC_PRIVATE, 1, IPC_CREAT | 0770);
+    log_debug(":sub_sharedStore Semaphore erstellt semid: %d", sub_semid);
+    sub_DeleteSemid = sub_semid;
+
+// Semaphor init
+    sub_union.val = 1;
+    safesemctl(sub_semid, SEM_Sub, SETVAL, sub_union);
+
+//### Shared Memory erstellen
+    sub_shmid = shmget(IPC_PRIVATE, SUB_Size, IPC_CREAT | SHM_R | SHM_W );
+    if (sub_shmid == -1) {
+        log_error(":sub_sharedStore Fehler bei Erstellung Shared Memory. Key: %d | Größe: %ld", IPC_PRIVATE, SUB_Size);
+    } else {
+        log_info(":sub_sharedStore Shared Memory erstellt shmid: %d", sub_shmid);
+    }
+    sub_DeleteShmid = sub_shmid;
+
+// Shared Memory anbindung
+    log_info(":sub_sharedStore Shared Memory anbinden... ");
+    shm_addr = shmat(sub_shmid, NULL, 0);
+    log_debug(":sub_sharedStore shm_addr %d", shm_addr);
+    if (!shm_addr) { /* operation failed. */
+        log_error(":sub_sharedStore Fehler bei Anbindung Shared Memory.");
+        perror("shmat: ");
+        exit(1);
+    } else {
+        log_info(":sub_sharedStore Shared Memory angebunden.");
+    }
+    // Shared Memory tatsaechliche_anzahl_subs = Anzahl der Subs im Array
+    log_info(":sub_sharedStore subliste im Shared Memory erstellen...");
+    tatsaechliche_anzahl_subs = (int*) shm_addr;
+    *tatsaechliche_anzahl_subs = 0;
+
+    // Shared Memory Subliste = Der Bereich für den Subliste
+    subliste = (struct liste*) ((void*)shm_addr+(sizeof(int)));
+    log_debug(":sub_sharedStore subliste: %s", subliste);
+    if(subliste == (void *) -1) {
+        log_error(":sub_sharedStore Fehler, subliste konnte nicht erstellt werden.");
+    } else {
+        log_info(":sub_sharedStore subliste erstellt.");
+    }
+    log_debug(":sub_sharedStore *tatsaechliche_anzahl_subs %d", *tatsaechliche_anzahl_subs);
+}
+
+int sub(char* key, int cfd) {
+    log_info(":sub start");
+    locksem(sub_semid,SEM_Sub);
+    log_info("tatsaechliche_anzahl_subs Werrt: %i",*tatsaechliche_anzahl_subs);
+    if(((*tatsaechliche_anzahl_subs)+1)<ANZAHLSUBS) {
+    log_info(":sub Subplätzer noch frei");
+    char res[LENGTH_VALUE];
+    if (get(key, res) == 0) {
+        log_info("tatsaechliche_anzahl_subs Werrt: %i",*tatsaechliche_anzahl_subs);
+        log_info(":sub Key existiert zu Subben");
+        log_info("ich bin hier 1");
+        strcpy(subliste[(*tatsaechliche_anzahl_subs)].key, key);
+        log_info("ich bin hier 2");
+        subliste[(*tatsaechliche_anzahl_subs)].cfd = cfd;
+
+        (*tatsaechliche_anzahl_subs)++;
+        log_info(":sub Subbing ist gelungen!");
+        unlocksem(sub_semid,SEM_Sub);
+        return 0;
+    } else {
+        log_info(":sub Key existiert nicht. Kein Sub möglich!");
+        unlocksem(sub_semid,SEM_Sub);
+        return -1;
+    }
+    } else{
+        log_info(":sub Maximale Anzahl an Subs erreicht!");
+        unlocksem(sub_semid,SEM_Sub);
+        return -1;
+    }
+}
 
 int pub(char* key, char* res, int funktion){
     char out[BUFSIZE];
@@ -35,32 +133,6 @@ int pub(char* key, char* res, int funktion){
         log_info(":sub Liste war Leer, keine Nachricht gesendet");
         return 0;
     }
-}
-
-int sub(char* key, int cfd) {
-    log_info(":sub start");
-    //if(((*tatsaechliche_anzahl_subs)+1)<ANZAHLSUBS) {
-        log_info(":sub Subplätzer noch frei");
-        char res[LENGTH_VALUE];
-        if (get(key, res) == 0) {
-            //log_info("tatsaechliche_anzahl_subs Werrt: %i",tatsaechliche_anzahl_subs);
-            log_info(":sub Key existiert zu Subben");
-            log_info("ich bin hier 1");
-            strcpy(subliste[(tatsaechliche_anzahl_subs)].key, key);
-            log_info("ich bin hier 2");
-            strcpy(subliste[(tatsaechliche_anzahl_subs)].cfd, cfd);
-
-            //(*tatsaechliche_anzahl_subs)++;
-            log_info(":sub Subbing ist gelungen!");
-            return 0;
-        } else {
-            log_info(":sub Key existiert nicht. Kein Sub möglich!");
-            return -1;
-        }
-//    } else{
-//        log_info(":sub Maximale Anzahl an Subs erreicht!");
-//        return -1;
-//    }
 }
 
 int desub(char* key, int cfd){

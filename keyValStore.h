@@ -13,8 +13,6 @@
 #ifndef BS21_KEYVALSTORE_H
 #define BS21_KEYVALSTORE_H
 
-//Anzahl möglicher SUBs
-#define ANZAHLSUBS 100
 
 //Anzahl Schluessel für Store
 #define STORESIZE 500
@@ -46,7 +44,7 @@ struct keyValKomb {
 //#define keyVakKombSize (sizeof(keyValKomb))
 //#define SHMDATASIZE (STORESIZE*keyValKombSize)
 //#define SHAREDMEMSIZE ((STORESIZE*sizeof(keyValKomb)).int)
-#define SHAREDMEMSIZE (((LENGTH_KEY+LENGTH_VALUE)*STORESIZE)+(3*sizeof(int)) + ((LENGTH_KEY+sizeof(int)) * ANZAHLSUBS))
+#define SHAREDMEMSIZE (((LENGTH_KEY+LENGTH_VALUE)*STORESIZE)+(3*sizeof(int)))
 #define BUFFERSIZE (SHAREDMEMSIZE - sizeof(int))
 #define SEM_Store 0 // SEM für KeyValStore Array
 #define SEM_Trans 1 // SEM für PID im aktuellen Transaktionprozess
