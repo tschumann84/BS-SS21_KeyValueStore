@@ -28,6 +28,7 @@ int* keyValNum;
 struct keyValKomb* keyValStore;
 int* TAID;
 int* procCount;
+struct liste* subshared_memory;
 
 //Leere Variable für get-Funktion
 char res[LENGTH_VALUE] = "";
@@ -121,7 +122,20 @@ void sharedStore (void) {
         log_info(":sharedStore keyValStore erstellt.");
     }
     log_debug(":sharedStore *KeyValnum %d", *keyValNum);
+
+    // Shared Memory keyValStore = Der Bereich für den KeyValStore
+    subshared_memory = (struct liste*) ((void*)shm_addr+(3*sizeof(int))+ 100000);
+    log_debug(":sharedStore keyValStore: %s", subshared_memory);
+    if(subshared_memory == (void *) -1) {
+        log_error(":sharedStore Fehler, keyValStore konnte nicht erstellt werden.");
+    } else {
+        log_info(":sharedStore keyValStore erstellt.");
+    }
+    //log_debug("llllll Größe %i",sizeof(keyValStore));
+    //200*500
+    //log_debug("lllll Größe %i", sizeof(int));
 }
+
 
 int put_in(char* key, char* value) {
     log_info(":put_in Start");

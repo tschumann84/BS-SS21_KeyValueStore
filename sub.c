@@ -5,11 +5,9 @@
 #include "sys/msg.h"
 #include "server.h"
 
-struct liste {
-    char key[LENGTH_KEY];
-    int cfd;
-};
 struct liste* subliste;
+int tatsaechliche_anzahl_subs = 0;
+
 
 int pub(char* key, char* res, int funktion){
     char out[BUFSIZE];
@@ -38,39 +36,44 @@ int pub(char* key, char* res, int funktion){
 }
 
 int sub(char* key, int cfd) {
-    char res[LENGTH_VALUE];
-    if(get(key, res)==0){
 
-    log_info(":sub start");
-    int i = 0;
-        log_info(":sub ich bin hier 0,5");
-    //locksem(semid, SEM_Store);
-    if(strcmp(subliste[i].key, "\0") != 0) {
-        log_info(":sub ich bin hier 1");
-        log_info(":sub Liste leer, füge neues Element ein");
-        strcpy(subliste[i].key, key);
-        subliste[i].cfd = cfd;
-        log_info(":sub wurde erstellt.");
-        return 0;
-    }
-    else{
-        log_info(":sub ich bin hier 2");
-        int j = i+1;
-        do{
-        if(strcmp(subliste[i].key, "\0") != 0) {
-            strcpy(subliste[i].key, key);
-            subliste[i].cfd = cfd;
-            //0 Byte an ende dran gesetzt
-            strcpy(subliste[j].key, "\0");
+    if(tatsaechliche_anzahl_subs<ANZAHLSUBS) {
+        char res[LENGTH_VALUE];
+        if (get(key, res) == 0) {
+
+            log_info(":sub start");
+            int i = 0;
+            log_info(":sub ich bin hier 0,5");
+            //locksem(semid, SEM_Store);
+            if (strcmp(subliste[i].key, "\0") != 0) {
+                log_info(":sub ich bin hier 1");
+                log_info(":sub Liste leer, füge neues Element ein");
+                strcpy(subliste[i].key, key);
+                subliste[i].cfd = cfd;
+                log_info(":sub wurde erstellt.");
+                tatsaechliche_anzahl_subs++;
+                return 0;
+            } else {
+                log_info(":sub ich bin hier 2");
+                int j = i + 1;
+                do {
+                    if (strcmp(subliste[i].key, "\0") != 0) {
+                        strcpy(subliste[i].key, key);
+                        subliste[i].cfd = cfd;
+                        //0 Byte an ende dran gesetzt
+                        strcpy(subliste[j].key, "\0");
+                    }
+                    i++;
+                } while ((strcmp(subliste[i].key, "\0") != 0));
+                tatsaechliche_anzahl_subs++;
+                return 0;
+            }
+        } else {
+            log_info(":sub Key existiert nicht. Kein Sub möglich!");
+            return -1;
         }
-            i++;
-    } while ((strcmp(subliste[i].key, "\0") != 0));
-        return 0;
-    }
-    }
-    else
-    {
-        log_info(":sub Key existiert nicht. Kein Sub möglich!");
+    } else{
+        log_info(":sub Maximale Anzahl an Subs erreicht!");
         return -1;
     }
 }
