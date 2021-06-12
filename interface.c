@@ -134,22 +134,6 @@ int interface(char* in, char* out){
         sub(key,getCFD());
         return 0;
     }
-        /********
-           PUB
-        *******/
-    else if (startsWith("PUB",in)){
-        log_debug(":interface Prozess ID %d", getpid());
-        int returnCodeKey;
-        returnCodeKey = getKey(in, key);
-
-        switch(returnCodeKey){
-            case -1: snprintf(out, BUFSIZE, "%s", "command_nonexistent\r\n"); return 0;
-            case -2: snprintf(out, BUFSIZE, "%s", "key_too_long\r\n"); return 0;
-        }
-
-        pub(key,resValue,getCFD());
-        return 0;
-    }
     /********
        END
     *******/

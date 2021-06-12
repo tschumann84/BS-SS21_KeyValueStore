@@ -81,16 +81,12 @@ void sub_sharedStore (void) {
 int sub(char* key, int cfd) {
     log_info(":sub start");
     locksem(sub_semid,SEM_Sub);
-    log_info("tatsaechliche_anzahl_subs Werrt: %i",*tatsaechliche_anzahl_subs);
     if(((*tatsaechliche_anzahl_subs)+1)<ANZAHLSUBS) {
-    log_info(":sub Subplätzer noch frei");
+    log_info(":sub Subplätze noch frei");
     char res[LENGTH_VALUE];
     if (get(key, res) == 0) {
-        log_info("tatsaechliche_anzahl_subs Werrt: %i",*tatsaechliche_anzahl_subs);
-        log_info(":sub Key existiert zu Subben");
-        log_info("ich bin hier 1");
+        log_info(":sub Key existiert zum Subben");
         strcpy(subliste[(*tatsaechliche_anzahl_subs)].key, key);
-        log_info("ich bin hier 2");
         subliste[(*tatsaechliche_anzahl_subs)].cfd = cfd;
 
         (*tatsaechliche_anzahl_subs)++;
@@ -110,27 +106,36 @@ int sub(char* key, int cfd) {
 }
 
 int pub(char* key, char* res, int funktion){
+    log_info(":pub start");
+    locksem(sub_semid,SEM_Sub);
     char out[BUFSIZE];
+    clearArray(out);
     int i = 0;
     switch(funktion){
-        case 0: snprintf(out, BUFSIZE, "PUT:%s:%s\r\n",key,res); break;
-        case 1: snprintf(out, BUFSIZE, "DEL:%s\r\n",key); break;
+        case 0: {
+            snprintf(out, BUFSIZE, "PUT:%s:%s\r\n",key,res); break;
+            log_info(":pub Funktionsaufruf durch PUT");
+        }
+        case 1: {
+            snprintf(out, BUFSIZE, "DEL:%s\r\n",key); break;
+            log_info(":pub Funktionsaufruf durch DEL");
+        }
     }
     if(strcmp(subliste[i].key, "\0") != 0) {
         do {
             if (strcmp(subliste[i].key, key) == 0) {
-//                for( n = 0; n < ServerSocket->Socket->ActiveConnections; n++ )
-//                {
-//                    ServerSocket->Socket->Connections[n]->SendText("%out",out);
-//                }
-                log_info(":sub Nachricht gedeset bei Key: %s",subliste[i].key);
+
+
+                log_info(":pub Nachricht gesendet an Subber des Key: %s",subliste[i].key);
             }
             i++;
         }while ((strcmp(subliste[i].key, "\0") != 0));
-
+        unlocksem(sub_semid,SEM_Sub);
+        return 0;
     }
     else {
-        log_info(":sub Liste war Leer, keine Nachricht gesendet");
+        log_info(":pub Subliste war Leer, keine Nachricht gesendet");
+        unlocksem(sub_semid,SEM_Sub);
         return 0;
     }
 }

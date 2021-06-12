@@ -22,6 +22,7 @@ Festlegungen für den Inhalt der Werte:
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include "server.h"
+#include "sub.h"
 
 int semid, shmid;
 int* keyValNum;
@@ -150,6 +151,7 @@ int put_in(char* key, char* value) {
             //log_debug(":put_in unlocksem(semid, SEM_Store);");
             unlocksem(semid, SEM_Store);
             log_info(":put_in Key gefunden und überschrieben.");
+            pub(key, res, 0);
             return 0;
         }
     }
@@ -273,6 +275,7 @@ int del_in(char* key) {
                 }while ((strcmp(keyValStore[j-1].key, "\0") != 0));
                 (*keyValNum)--;
                 unlocksem(semid, SEM_Store);
+                pub(key, res, 1);
                 return 0;
             }
             i++;
