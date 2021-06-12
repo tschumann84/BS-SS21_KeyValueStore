@@ -111,6 +111,7 @@ int pub(char* key, char* res, int funktion){
     log_info(":pub start");
     locksem(sub_semid,SEM_Sub);
     int i = 0;
+//    char out[BUFFERSIZE];
 //    switch(funktion){
 //        case 0: {
 //            snprintf(out, BUFSIZE, "PUT:%s:%s\r\n",key,res); break;
@@ -124,24 +125,24 @@ int pub(char* key, char* res, int funktion){
     if(strcmp(subliste[i].key, "\0") != 0) {
         do {
             if (strcmp(subliste[i].key, key) == 0) {
-//                int msg_length = sizeof(out);
-//                send(subliste[i].cfd, out, msg_length,MSG_NOSIGNAL);
-//                log_info(":pub Nachricht gesendet an Subber des Key: %s",subliste[i].key);
+//               int msg_length = sizeof(out);
+//               send(subliste[i].cfd, out, msg_length,MSG_NOSIGNAL);
+//               log_info(":pub Nachricht gesendet an Subber des Key: %s",subliste[i].key);
                 if(funktion == 0){
                     log_info(":pub Funktionsaufruf durch PUT");
-                    char string1[BUFFERSIZE];
+                    char string1[100];
                     sprintf(string1, "PUT:%s:%s\r\n",key,res);
                     log_info(string1);
-                    int msg1 = strlen(string1);
-                    send(subliste[i].cfd, string1, BUFFERSIZE,0);
-                    write(subliste[i].cfd,string1,msg1);
+                    int msg1 = sizeof(string1);
+                    send(subliste[i].cfd, string1, BUFFERSIZE,MSG_NOSIGNAL);
+                    //write(subliste[i].cfd,string1,msg1);
                 } else {
                     log_info(":pub Funktionsaufruf durch DEL");
-                    char string2[BUFFERSIZE];
+                    char string2[100];
                     sprintf(string2, "DEL:%s:key_deleted\r\n",key);
                     log_info(string2);
-                    int msg2 = strlen(string2);
-                    send(subliste[i].cfd, string2, msg2,0);
+                    int msg2 = sizeof(string2);
+                    send(subliste[i].cfd, string2, BUFFERSIZE,MSG_NOSIGNAL);
                 }
                 log_info(":pub Nachricht gesendet an Subber des Key: %s",subliste[i].key);
             }
