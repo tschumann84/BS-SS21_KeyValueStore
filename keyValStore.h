@@ -12,6 +12,8 @@
 
 #ifndef BS21_KEYVALSTORE_H
 #define BS21_KEYVALSTORE_H
+
+//Anzahl möglicher SUBs
 #define ANZAHLSUBS 100
 
 //Anzahl Schluessel für Store

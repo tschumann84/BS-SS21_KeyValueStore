@@ -5,12 +5,12 @@
 
 #ifndef BS21_SUB_H
 #define BS21_SUB_H
-int sub(char* key, int cfd);
-int desub(char* key, int cfd);
-int pub(char* key, char* res, int funktion);
 struct liste {
     char key[LENGTH_KEY];
     int cfd;
 };
 
+int sub(char* key, int cfd);
+int desub(char* key, int cfd);
+int pub(char* key, char* res, int funktion);
 #endif //BS21_SUB_H

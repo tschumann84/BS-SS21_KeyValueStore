@@ -6,7 +6,9 @@
 #include "server.h"
 
 struct liste* subliste;
-int *tatsaechliche_anzahl_subs = 0;
+int tatsaechliche_anzahl_subs = 0;
+//int semid, shmid;
+
 
 
 int pub(char* key, char* res, int funktion){
@@ -37,25 +39,28 @@ int pub(char* key, char* res, int funktion){
 
 int sub(char* key, int cfd) {
     log_info(":sub start");
-    if(((*tatsaechliche_anzahl_subs)+1)<ANZAHLSUBS) {
+    //if(((*tatsaechliche_anzahl_subs)+1)<ANZAHLSUBS) {
         log_info(":sub Subplätzer noch frei");
         char res[LENGTH_VALUE];
         if (get(key, res) == 0) {
+            //log_info("tatsaechliche_anzahl_subs Werrt: %i",tatsaechliche_anzahl_subs);
             log_info(":sub Key existiert zu Subben");
-            strcpy(subliste[(*tatsaechliche_anzahl_subs)].key, key);
-            strcpy(subliste[(*tatsaechliche_anzahl_subs)].cfd, cfd);
+            log_info("ich bin hier 1");
+            strcpy(subliste[(tatsaechliche_anzahl_subs)].key, key);
+            log_info("ich bin hier 2");
+            strcpy(subliste[(tatsaechliche_anzahl_subs)].cfd, cfd);
 
-            (*tatsaechliche_anzahl_subs)++;
+            //(*tatsaechliche_anzahl_subs)++;
             log_info(":sub Subbing ist gelungen!");
             return 0;
         } else {
             log_info(":sub Key existiert nicht. Kein Sub möglich!");
             return -1;
         }
-    } else{
-        log_info(":sub Maximale Anzahl an Subs erreicht!");
-        return -1;
-    }
+//    } else{
+//        log_info(":sub Maximale Anzahl an Subs erreicht!");
+//        return -1;
+//    }
 }
 
 int desub(char* key, int cfd){
