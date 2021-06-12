@@ -110,25 +110,39 @@ int sub(char* key, int cfd) {
 int pub(char* key, char* res, int funktion){
     log_info(":pub start");
     locksem(sub_semid,SEM_Sub);
-    char out[BUFSIZE];
-    clearArray(out);
     int i = 0;
-    switch(funktion){
-        case 0: {
-            snprintf(out, BUFSIZE, "PUT:%s:%s\r\n",key,res); break;
-            log_info(":pub Funktionsaufruf durch PUT");
-        }
-        case 1: {
-            snprintf(out, BUFSIZE, "DEL:%s\r\n",key); break;
-            log_info(":pub Funktionsaufruf durch DEL");
-        }
-    }
+//    switch(funktion){
+//        case 0: {
+//            snprintf(out, BUFSIZE, "PUT:%s:%s\r\n",key,res); break;
+//            log_info(":pub Funktionsaufruf durch PUT");
+//        }
+//        case 1: {
+//            snprintf(out, BUFSIZE, "DEL:%s\r\n",key); break;
+//            log_info(":pub Funktionsaufruf durch DEL");
+//        }
+//    }
     if(strcmp(subliste[i].key, "\0") != 0) {
         do {
             if (strcmp(subliste[i].key, key) == 0) {
-                int msg_length = sizeof(out);
-                send(subliste[i].cfd, out, msg_length,MSG_NOSIGNAL);
-
+//                int msg_length = sizeof(out);
+//                send(subliste[i].cfd, out, msg_length,MSG_NOSIGNAL);
+//                log_info(":pub Nachricht gesendet an Subber des Key: %s",subliste[i].key);
+                if(funktion == 0){
+                    log_info(":pub Funktionsaufruf durch PUT");
+                    char string1[BUFFERSIZE];
+                    sprintf(string1, "PUT:%s:%s\r\n",key,res);
+                    log_info(string1);
+                    int msg1 = strlen(string1);
+                    send(subliste[i].cfd, string1, BUFFERSIZE,0);
+                    write(subliste[i].cfd,string1,msg1);
+                } else {
+                    log_info(":pub Funktionsaufruf durch DEL");
+                    char string2[BUFFERSIZE];
+                    sprintf(string2, "DEL:%s:key_deleted\r\n",key);
+                    log_info(string2);
+                    int msg2 = strlen(string2);
+                    send(subliste[i].cfd, string2, msg2+10,0);
+                }
                 log_info(":pub Nachricht gesendet an Subber des Key: %s",subliste[i].key);
             }
             i++;

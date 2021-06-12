@@ -151,7 +151,7 @@ int put_in(char* key, char* value) {
             //log_debug(":put_in unlocksem(semid, SEM_Store);");
             unlocksem(semid, SEM_Store);
             log_info(":put_in Key gefunden und überschrieben.");
-            pub(key, res, 0);
+            pub(key, value, 0);
             return 0;
         }
     }
