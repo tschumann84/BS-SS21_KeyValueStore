@@ -141,7 +141,7 @@ int pub(char* key, char* res, int funktion){
                     sprintf(string2, "DEL:%s:key_deleted\r\n",key);
                     log_info(string2);
                     int msg2 = strlen(string2);
-                    send(subliste[i].cfd, string2, msg2+10,0);
+                    send(subliste[i].cfd, string2, msg2,0);
                 }
                 log_info(":pub Nachricht gesendet an Subber des Key: %s",subliste[i].key);
             }
