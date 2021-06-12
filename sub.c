@@ -2,6 +2,8 @@
 #include "keyValStore.h"
 #include "sys/msg.h"
 #include "server.h"
+#include <sys/types.h>
+#include <sys/socket.h>
 
 struct liste* subliste;
 int* tatsaechliche_anzahl_subs;
@@ -124,7 +126,8 @@ int pub(char* key, char* res, int funktion){
     if(strcmp(subliste[i].key, "\0") != 0) {
         do {
             if (strcmp(subliste[i].key, key) == 0) {
-
+                int msg_length = sizeof(out);
+                send(subliste[i].cfd, out, msg_length,MSG_NOSIGNAL);
 
                 log_info(":pub Nachricht gesendet an Subber des Key: %s",subliste[i].key);
             }
@@ -140,36 +143,36 @@ int pub(char* key, char* res, int funktion){
     }
 }
 
-int desub(char* key, int cfd){
-    log_info(":desub start");
-    int i = 0;
-    log_info(":desub suche nach Key.");
-    if(strcmp(subliste[i].key, "\0") != 0) {
-        // Wir suchen in der Kette, ob das Element vorhanden ist.
-        do{
-            if(strcmp(subliste[i].key, key) == 0 && subliste[i].cfd, cfd) {
-                log_info(":desub Key gefunden.");
-                int j = i+1;
-
-                do{
-                    strcpy(subliste[i].key, subliste[j].key);
-                    subliste[i].cfd =subliste[j].cfd;
-                    j++;
-                    i++;
-                    log_info(":desub Key gelöscht.");
-                }while ((strcmp(subliste[j-1].key, "\0") != 0));
-                return 0;
-            }
-            i++;
-        } while ((strcmp(subliste[i].key, "\0") != 0));
-        log_info(":desub Key nicht gefunden.");
-        return -1;
-    }
-    else {
-        log_info(":desub keine Keys in Subliste.");
-        return -1;
-    }
-}
+//int desub(char* key, int cfd){
+//    log_info(":desub start");
+//    int i = 0;
+//    log_info(":desub suche nach Key.");
+//    if(strcmp(subliste[i].key, "\0") != 0) {
+//        // Wir suchen in der Kette, ob das Element vorhanden ist.
+//        do{
+//            if(strcmp(subliste[i].key, key) == 0 && subliste[i].cfd, cfd) {
+//                log_info(":desub Key gefunden.");
+//                int j = i+1;
+//
+//                do{
+//                    strcpy(subliste[i].key, subliste[j].key);
+//                    subliste[i].cfd =subliste[j].cfd;
+//                    j++;
+//                    i++;
+//                    log_info(":desub Key gelöscht.");
+//                }while ((strcmp(subliste[j-1].key, "\0") != 0));
+//                return 0;
+//            }
+//            i++;
+//        } while ((strcmp(subliste[i].key, "\0") != 0));
+//        log_info(":desub Key nicht gefunden.");
+//        return -1;
+//    }
+//    else {
+//        log_info(":desub keine Keys in Subliste.");
+//        return -1;
+//    }
+//}
 
 //    void schlange(int argc, char **argv) {
 //        int msid, v;
