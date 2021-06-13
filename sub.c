@@ -133,9 +133,9 @@ int pub(char* key, char* res, int funktion){
                     char string1[100];
                     sprintf(string1, "PUT:%s:%s\r\n",key,res);
                     log_info(string1);
-                    int msg1 = sizeof(string1);
-                    send(subliste[i].cfd, string1, BUFFERSIZE,MSG_NOSIGNAL);
-                    //write(subliste[i].cfd,string1,msg1);
+                    //int msg1 = sizeof(string1);
+                    //send(subliste[i].cfd, string1, BUFFERSIZE,MSG_NOSIGNAL);
+                    write(subliste[i].cfd,string1,strlen(string1));
                 } else {
                     log_info(":pub Funktionsaufruf durch DEL");
                     char string2[100];

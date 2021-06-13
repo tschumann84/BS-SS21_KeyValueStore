@@ -131,7 +131,13 @@ int interface(char* in, char* out){
             case -2: snprintf(out, BUFSIZE, "%s", "key_too_long\r\n"); return 0;
         }
 
-        sub(key,getCFD());
+        int subreturnCode;
+        subreturnCode = sub(key,getCFD());
+
+        switch(subreturnCode){
+            case 0: snprintf(out, BUFSIZE, "SUB:%s\r\n", key); return 0;
+            case -1: snprintf(out, BUFSIZE, "%s", "sub_error_occurred\r\n"); return 0;
+        }
         return 0;
     }
     /********

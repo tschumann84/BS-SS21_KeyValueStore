@@ -42,8 +42,7 @@ int server_stop() {
     } else {
         //Normalfall
         if (childpid !=0){
-            bool done = false;
-            while (done == false){
+            while (true){
                 if (getProcCount()==0){
                     log_info(":stopServer Vaterprozess macht den Rest sauber.");
                     saveBlockShutdown(getpid());
@@ -52,7 +51,6 @@ int server_stop() {
                     delete();
                     sub_delete();
                     log_info(":stopServer Server erfolgreich heruntergefahren.");
-                    done = true;
                     exit(EXIT_SUCCESS);
                 } else{
                     usleep(2);
