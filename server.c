@@ -124,6 +124,8 @@ int server_start() {
 
                 //Socket wird eingelesen
                 bytes_read = read(cfd, in, BUFSIZE);
+                log_debug(":Rohdaten: %s", in);
+
                 if (bytes_read <= 0){
                     close(cfd);
                     break;

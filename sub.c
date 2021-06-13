@@ -130,7 +130,7 @@ int pub(char* key, char* res, int funktion){
 //               log_info(":pub Nachricht gesendet an Subber des Key: %s",subliste[i].key);
                 if(funktion == 0){
                     log_info(":pub Funktionsaufruf durch PUT");
-                    char string1[100];
+                    char string1[110];
                     sprintf(string1, "PUT:%s:%s\r\n",key,res);
                     log_info(string1);
                     //int msg1 = sizeof(string1);
@@ -138,11 +138,11 @@ int pub(char* key, char* res, int funktion){
                     write(subliste[i].cfd,string1,strlen(string1));
                 } else {
                     log_info(":pub Funktionsaufruf durch DEL");
-                    char string2[100];
+                    char string2[110];
                     sprintf(string2, "DEL:%s:key_deleted\r\n",key);
                     log_info(string2);
                     int msg2 = sizeof(string2);
-                    send(subliste[i].cfd, string2, BUFFERSIZE,MSG_NOSIGNAL);
+                    write(subliste[i].cfd,string2,strlen(string2));
                 }
                 log_info(":pub Nachricht gesendet an Subber des Key: %s",subliste[i].key);
             }
