@@ -17,12 +17,14 @@ static int sub_DeleteShmid = 0;
 
 struct liste {
     char key[LENGTH_KEY];
-    int cfd;
+    int pid;
 };
 
 void sub_delete (void);
 void sub_sharedStore (void);
-int sub(char* key, int cfd);
+int sub(char* key, int pid);
 int desub(char* key, int cfd);
 int pub(char* key, char* res, int funktion);
+int getMsgPut();
+int getMsgDel();
 #endif //BS21_SUB_H

@@ -132,7 +132,7 @@ int interface(char* in, char* out){
         }
 
         int subreturnCode;
-        subreturnCode = sub(key,getCFD());
+        subreturnCode = sub(key,getpid());
 
         switch(subreturnCode){
             case 0: snprintf(out, BUFSIZE, "SUB:%s\r\n", key); return 0;

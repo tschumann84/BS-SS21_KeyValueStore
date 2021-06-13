@@ -13,6 +13,18 @@ int main() {
     sigaction(SIGTERM, &action, NULL);
     sigaction(SIGINT, &action, NULL);
 
+    struct sigaction sigput;
+    memset(&sigput, 0, sizeof(struct sigaction));
+    sigput.sa_handler = (__sighandler_t) getMsgPut;
+    sigaction(SIGTTIN, &sigput, NULL);
+
+    struct sigaction sigdel;
+    memset(&sigdel, 0, sizeof(struct sigaction));
+    sigdel.sa_handler = (__sighandler_t) getMsgDel;
+    sigaction(SIGTTOU, &sigdel, NULL);
+
+
+
     //Logging Level
     log_set_level(1);
 

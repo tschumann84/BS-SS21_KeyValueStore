@@ -66,6 +66,8 @@ int server_stop() {
     }
 }
 
+
+
 int server_start() {
     socklen_t client_len; // Länge der Client-Daten
 
@@ -123,7 +125,12 @@ int server_start() {
                 clearArray(out);
 
                 //Socket wird eingelesen
-                bytes_read = read(cfd, in, BUFSIZE);
+
+                do {
+                    bytes_read = read(cfd, in, BUFSIZE);
+                } while(errno == EINTR && bytes_read <=0);
+
+
                 log_debug(":Rohdaten: %s", in);
 
                 if (bytes_read <= 0){
