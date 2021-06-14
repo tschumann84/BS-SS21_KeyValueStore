@@ -27,11 +27,15 @@ int main() {
 
     //Logging Level
     log_set_level(1);
+    remove("logging.txt");
+    FILE *fp_test = fopen("logging.txt","w");
+    log_add_fp(fp_test, 1);
 
     //Starten des Servers
     sharedStore();
     sub_sharedStore();
     server_start();
+    fclose(fp_test);
 
     return 0;
 }

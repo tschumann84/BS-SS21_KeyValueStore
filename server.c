@@ -38,6 +38,7 @@ int server_stop() {
                 if (getProcCount()==0){
                     log_info(":stopServer Vaterprozess macht den Rest sauber.");
                     saveBlockShutdown(getpid());
+                    close(cfd);
                     close(rfd);
                     saveUnblockShutdown(getpid());
                     delete();
