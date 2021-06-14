@@ -83,8 +83,9 @@ int getSuber(char* key, int pid) {
     locksem(sub_semid, SEM_Sub);
     int i = 0;
     do {
+        log_info(":getSuber gehe in DO rein");
         if (subliste[i].key == key && subliste[i].pid == pid) {
-            log_info(":sub Subber exestiert schon für den Prozess %i!",pid);
+            log_info(":getSuber Subber exestiert schon für den Prozess %i!",pid);
             return -2;
         }
         i++;
