@@ -23,7 +23,7 @@ struct liste {
 void sub_delete (void);
 void sub_sharedStore (void);
 int sub(char* key, int pid);
-int desub(char* key, int cfd);
+int desub(char* key);
 int pub(char* key, char* res, int funktion);
 int getMsgPut();
 int getMsgDel();

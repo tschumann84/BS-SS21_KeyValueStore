@@ -79,31 +79,49 @@ void sub_sharedStore (void) {
     }
     log_debug(":sub_sharedStore *tatsaechliche_anzahl_subs %d", *tatsaechliche_anzahl_subs);
 }
+int getSuber(char* key, int pid) {
+    locksem(sub_semid, SEM_Sub);
+    int i = 0;
+    do {
+        if (subliste[i].key == key && subliste[i].pid == pid) {
+            log_info(":sub Subber exestiert schon für den Prozess %i!",pid);
+            return -2;
+        }
+        i++;
+    } while ((strcmp(subliste[i].key, "\0") != 0));
+    log_info(":getSuber Sub existiert noch nicht für den Prozess %i",pid);
+    unlocksem(sub_semid, SEM_Sub);
+    return 0;
+}
 
 int sub(char* key, int pid) {
     log_info(":sub start");
-    locksem(sub_semid,SEM_Sub);
-    if(((*tatsaechliche_anzahl_subs)+1)<ANZAHLSUBS) {
-    log_info(":sub Subplätze noch frei");
-    char res[LENGTH_VALUE];
-    if (get(key, res) == 0) {
-        log_info(":sub Key existiert zum Subben");
-        strcpy(subliste[(*tatsaechliche_anzahl_subs)].key, key);
-        subliste[(*tatsaechliche_anzahl_subs)].pid = pid;
+    if (getSuber(key, pid) == 0) {
+        locksem(sub_semid, SEM_Sub);
+        if (((*tatsaechliche_anzahl_subs) + 1) < ANZAHLSUBS) {
+            log_info(":sub Subplätze noch frei");
+            char res[LENGTH_VALUE];
+            if (get(key, res) == 0) {
+                log_info(":sub Key existiert zum Subben");
+                strcpy(subliste[(*tatsaechliche_anzahl_subs)].key, key);
+                subliste[(*tatsaechliche_anzahl_subs)].pid = pid;
 
-        (*tatsaechliche_anzahl_subs)++;
-        log_info(":sub Subbing ist gelungen!");
-        unlocksem(sub_semid,SEM_Sub);
-        return 0;
-    } else {
-        log_info(":sub Key existiert nicht. Kein Sub möglich!");
-        unlocksem(sub_semid,SEM_Sub);
-        return -1;
-    }
-    } else{
-        log_info(":sub Maximale Anzahl an Subs erreicht!");
-        unlocksem(sub_semid,SEM_Sub);
-        return -1;
+                (*tatsaechliche_anzahl_subs)++;
+                log_info(":sub Subbing ist gelungen!");
+                unlocksem(sub_semid, SEM_Sub);
+                return 0;
+            } else {
+                log_info(":sub Key existiert nicht. Kein Sub möglich!");
+                unlocksem(sub_semid, SEM_Sub);
+                return -1;
+            }
+        } else {
+            log_info(":sub Maximale Anzahl an Subs erreicht!");
+            unlocksem(sub_semid, SEM_Sub);
+            return -1;
+        }
+    }  else {
+        log_info("sub: Error, subber gibt es schon!");
     }
 }
 
@@ -111,40 +129,13 @@ int pub(char* key, char* res, int funktion){
     log_info(":pub start");
     locksem(sub_semid,SEM_Sub);
     int i = 0;
-//    char out[BUFFERSIZE];
-//    switch(funktion){
-//        case 0: {
-//            snprintf(out, BUFSIZE, "PUT:%s:%s\r\n",key,res); break;
-//            log_info(":pub Funktionsaufruf durch PUT");
-//        }
-//        case 1: {
-//            snprintf(out, BUFSIZE, "DEL:%s\r\n",key); break;
-//            log_info(":pub Funktionsaufruf durch DEL");
-//        }
-//    }
     if(strcmp(subliste[i].key, "\0") != 0) {
         do {
             if (strcmp(subliste[i].key, key) == 0) {
-//               int msg_length = sizeof(out);
-//               send(subliste[i].pid, out, msg_length,MSG_NOSIGNAL);
-//               log_info(":pub Nachricht gesendet an Subber des Key: %s",subliste[i].key);
+              log_info(":pub Nachricht gesendet an Subber des Key: %s",subliste[i].key);
                 if(funktion == 0){
-//                    log_info(":pub Funktionsaufruf durch PUT");
-//                    char string1[110];
-//                    sprintf(string1, "PUT:%s:%s\r\n",key,res);
-//                    log_info(string1);
-
                     kill(subliste[i].pid, SIGTTIN);
-
-                    //write(subliste[i].pid,string1,strlen(string1));
                 } else {
-//                    log_info(":pub Funktionsaufruf durch DEL");
-//                    char string2[110];
-//                    sprintf(string2, "DEL:%s:key_deleted\r\n",key);
-//                    log_info(string2);
-//                    int msg2 = sizeof(string2);
-//                    write(subliste[i].pid,string2,strlen(string2));
-
                     kill(subliste[i].pid, SIGTTOU);
                 }
                 log_info(":pub Nachricht gesendet an Subber des Key: %s",subliste[i].key);
@@ -152,12 +143,47 @@ int pub(char* key, char* res, int funktion){
             i++;
         }while ((strcmp(subliste[i].key, "\0") != 0));
         unlocksem(sub_semid,SEM_Sub);
+        if(funktion == 1){
+            desub(key);
+        }
         return 0;
     }
     else {
         log_info(":pub Subliste war Leer, keine Nachricht gesendet");
         unlocksem(sub_semid,SEM_Sub);
         return 0;
+    }
+}
+int desub(char* key){
+    log_info(":desub start");
+    locksem(sub_semid,SEM_Sub);
+    int i = 0;
+    log_info(":desub suche nach Key.");
+    if(strcmp(subliste[i].key, "\0") != 0) {
+        // Wir suchen in der Kette, ob das Element vorhanden ist.
+        do{
+            if(strcmp(subliste[i].key, key) == 0) {
+                log_info(":desub Key gefunden.");
+                int j = i+1;
+                do{
+                    strcpy(subliste[i].key, subliste[j].key);
+                    subliste[i].pid =subliste[j].pid;
+                    j++;
+                    i++;
+                }while ((strcmp(subliste[j-1].key, "\0") != 0));
+                log_info(":desub Key gelöscht aus Subliste");
+                (*tatsaechliche_anzahl_subs)--;
+                log_info(tatsaechliche_anzahl_subs);
+            }
+            i++;
+        } while ((strcmp(subliste[i].key, "\0") != 0));
+       unlocksem(sub_semid,SEM_Sub);
+        return 0;
+    }
+    else {
+        log_info(":desub keine Keys in Subliste.");
+        unlocksem(sub_semid,SEM_Sub);
+        return -1;
     }
 }
 
@@ -192,56 +218,3 @@ int getMsgDel(){
     }
     return 0;
 }
-
-//int desub(char* key, int pid){
-//    log_info(":desub start");
-//    int i = 0;
-//    log_info(":desub suche nach Key.");
-//    if(strcmp(subliste[i].key, "\0") != 0) {
-//        // Wir suchen in der Kette, ob das Element vorhanden ist.
-//        do{
-//            if(strcmp(subliste[i].key, key) == 0 && subliste[i].pid, pid) {
-//                log_info(":desub Key gefunden.");
-//                int j = i+1;
-//
-//                do{
-//                    strcpy(subliste[i].key, subliste[j].key);
-//                    subliste[i].pid =subliste[j].pid;
-//                    j++;
-//                    i++;
-//                    log_info(":desub Key gelöscht.");
-//                }while ((strcmp(subliste[j-1].key, "\0") != 0));
-//                return 0;
-//            }
-//            i++;
-//        } while ((strcmp(subliste[i].key, "\0") != 0));
-//        log_info(":desub Key nicht gefunden.");
-//        return -1;
-//    }
-//    else {
-//        log_info(":desub keine Keys in Subliste.");
-//        return -1;
-//    }
-//}
-
-//    void schlange(int argc, char **argv) {
-//        int msid, v;
-//        struct text_message mess;
-//        if(argc!= 4){
-//            printf(2, "usage:msgsnd<key> <type> <text>\n");
-//            exit(1)
-//        }
-//        //Schlange wurde erstellt, wenn notwendig
-//        msid = msgget((key_t)atoi(argv[1]), IPC_CREAT|0666);
-//        if(msid==-1) {
-//            printf("can not get message queue\n");
-//            exit(1);
-//        }
-//        mess.key = atoi(argv[2]);
-//        strcpy(mess.mtext,argv[3]);
-//        //Nachricht wird in schlange geschrieben
-//        v = msgsnd(msid, & mess, strlen(argv[3])+1, 0);
-//        if(v < 0) {
-//            printf("error writing to queue\n");
-//        }
-//    }
