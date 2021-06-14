@@ -2,8 +2,6 @@
 #include "keyValStore.h"
 #include "sys/msg.h"
 #include "server.h"
-#include <sys/types.h>
-#include <sys/socket.h>
 
 struct liste* subliste;
 int* tatsaechliche_anzahl_subs;
@@ -155,6 +153,7 @@ int pub(char* key, char* res, int funktion){
         return 0;
     }
 }
+
 int desub(char* key){
     log_info(":desub start");
     locksem(sub_semid,SEM_Sub);
@@ -190,32 +189,38 @@ int desub(char* key){
 
 int getMsgPut(){
         int i = 0;
-        char string1[100];
-        clearArray(string1);
+        char out[LENGTH_KEY + LENGTH_VALUE + 7];
+        clearArray(out);
         while ((strcmp(subliste[i].key, "\0") != 0)){
             if(subliste[i].pid == getpid()){
                 char value[LENGTH_VALUE];
                 get(subliste[i].key, value);
-                sprintf(string1, "PUT:%s:%s\r\n",subliste[i].key, value);
-                write(getCFD(),string1, strlen(string1));
+                sprintf(out, "PUT:%s:%s\r\n", subliste[i].key, value);
+                if (write(getCFD(), out, strlen(out))<0){
+                    log_error(":getMsgPut Pub war nicht erfolgreich Fehler: %s", strerror(errno));
+                }
                 return 0;
             }
             i++;
         }
-        return 0;
+    log_error(":getMsgPut Pub war nicht erfolgreich, Sub nicht gefunden.");
+    return -1;
 }
 
 int getMsgDel(){
     int i = 0;
-    char string1[100];
-    clearArray(string1);
+    char out[LENGTH_VALUE + 18];
+    clearArray(out);
     while ((strcmp(subliste[i].key, "\0") != 0)){
         if(subliste[i].pid == getpid()){
-            sprintf(string1, "DEL:%s:key_deleted\r\n",subliste[i].key);
-            write(getCFD(),string1, strlen(string1));
+            sprintf(out, "DEL:%s:key_deleted\r\n", subliste[i].key);
+            if (write(getCFD(), out, strlen(out))<0){
+                log_error(":getMsgDel Pub war nicht erfolgreich Fehler: %s", strerror(errno));
+            }
             return 0;
         }
         i++;
     }
-    return 0;
+    log_error(":getMsgDel Pub war nicht erfolgreich, Sub nicht gefunden.");
+    return -1;
 }

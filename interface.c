@@ -9,34 +9,25 @@
 *******************************************************************************/
 
 #include "interface.h"
-#include <stdio.h>
-#include <string.h>
-#include <stdbool.h>
 #include "log/log.h"
 #include "keyValStore.h"
-#include "server.h"
 #include "sub.h"
-#include <unistd.h>
+#include "server.h"
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <ctype.h>
 
-
-bool startsWith(const char *pre, const char *str);
-int interface(char* in, char* out);
-int clearArray(char* array);
-int getKey(char* in, char* out);
+bool startsWith(const char *pre, const   char *str);
 int getValue(char* in, char* out);
 int cpyPartOfArray(char* in, char* out, int start, int end);
-
+bool startsWith(const char *pre, const   char *str);
 
 int interface(char* in, char* out){
     char key[LENGTH_KEY];
     char value[LENGTH_VALUE];
-
     char resValue[LENGTH_VALUE];
-
     clearArray(out);
+
     /********
        GET
      *******/
@@ -81,7 +72,6 @@ int interface(char* in, char* out){
 
         //Ausgabe
         snprintf(out, BUFSIZE, "PUT:%s:%s\r\n", key, value);
-        return 0;
     }
     /********
        DEL
@@ -122,6 +112,7 @@ int interface(char* in, char* out){
        SUB
     *******/
     else if (startsWith("SUB",in)){
+        //Key aus dem Aufrufsstring ermitteln
         log_debug(":interface Prozess ID %d", getpid());
         int returnCodeKey;
         returnCodeKey = getKey(in, key);
@@ -138,7 +129,6 @@ int interface(char* in, char* out){
             case 0: snprintf(out, BUFSIZE, "SUB:%s\r\n", key); return 0;
             case -1: snprintf(out, BUFSIZE, "%s", "sub_error_occurred\r\n"); return 0;
         }
-        return 0;
     }
     /********
        END
@@ -152,7 +142,6 @@ int interface(char* in, char* out){
         } else{
             snprintf(out, BUFSIZE, "missing_authorization\r\n");
         }
-        return 0;
     }
     /********
       QUIT
@@ -162,7 +151,6 @@ int interface(char* in, char* out){
                  ntohs(getSocketaddrClient().sin_port));
         shutdown(getCFD(), 2);
         close(getCFD());
-        return 0;
     }
     /*********************
      Unbekannte Eingaben
@@ -175,6 +163,7 @@ int interface(char* in, char* out){
         log_error(":interface Daten empfangen jedoch wurde kein Keyword erkannt");
         return -2;
     }
+    return 0;
 }
 
 int getKey(char* in, char* out){
@@ -259,8 +248,7 @@ int cpyPartOfArray(char* in, char* out, int start, int end){
 }
 
 //Prüft ob der Anfang des Strings pre im String str enthalten ist.
-bool startsWith(const char *pre, const   char *str)
-{
+bool startsWith(const char *pre, const   char *str){
     size_t lenpre = strlen(pre),
             lenstr = strlen(str);
     return lenstr < lenpre ? false : memcmp(pre, str, lenpre) == 0;

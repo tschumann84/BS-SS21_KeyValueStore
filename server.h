@@ -5,9 +5,9 @@
 #ifndef BS21_SERVER_H
 #define BS21_SERVER_H
 
-#include <signal.h>
+#include "keyValStore.h"
 
-#define BUFSIZE 1024 // Größe des Buffers
+#define BUFSIZE (LENGTH_KEY+LENGTH_VALUE+15) // Größe des Buffers
 int server_start();
 int server_stop();
 int getCFD();

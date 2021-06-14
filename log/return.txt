@@ -37,6 +37,20 @@
         0 Key gefunden
         -1 Es wurde kein Key eingegeben
         -2 Key ist zu lang
+#  sub.c
+    int getMsgDel()
+        0 Key gefunden, auf Socket ausgegeben
+        -1 Key nicht gefunden, nichts auf Socket ausgegeben
+    int getMsgPut()
+        0 Key gefunden, auf Socket ausgegeben
+        -1 Key nicht gefunden, nichts auf Socket ausgegeben
+    int desub(char* key)
+        0 Key aus subliste gelöscht
+        -1 Key in subliste nicht gefunden
+    int sub(char* key, int pid)
+        0 subbing gelungen
+        -1 subbing nicht gelungen
+
 # sub.c
 # func/
 ## writeFunc.c

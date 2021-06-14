@@ -7,18 +7,8 @@
 *******************************************************************************/
 
 #include "server.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
 #include <sys/socket.h>
-#include <sys/types.h>
 #include <netinet/in.h>
-#include <arpa/inet.h>
-#include <signal.h>
-#include "log/log.h"
-#include <string.h>
-#include "interface.h"
-#include "keyValStore.h"
 #include "sub.h"
 
 #define PORT 5678
@@ -41,6 +31,8 @@ int server_stop() {
         exit(EXIT_SUCCESS);
     } else {
         //Normalfall
+
+        //Routine für den Vaterprozess
         if (childpid !=0){
             while (true){
                 if (getProcCount()==0){
@@ -56,6 +48,7 @@ int server_stop() {
                     usleep(2);
                 }
             }
+            //Routine für die Kindprozesse
         } else{
             saveBlockShutdown(getpid());
             schleife = 0;
@@ -64,21 +57,28 @@ int server_stop() {
             saveUnblockShutdown(getpid());
         }
     }
+    return 0;
 }
 
 
 
 int server_start() {
-    socklen_t client_len; // Länge der Client-Daten
+    // Länge der Client-Daten
+    socklen_t client_len;
 
-    char in[BUFSIZE]; // Daten vom Client an den Server
-    char out[BUFSIZE]; // Daten vom Server an den Client
-    int bytes_read; // Anzahl der Bytes, die der Client geschickt hat
+    // Daten vom Client an den Server
+    char in[BUFSIZE];
+
+    // Daten vom Server an den Client
+    char out[BUFSIZE];
+
+    // Anzahl der Bytes, die der Client geschickt hat
+    int bytes_read;
 
     // Socket erstellen
     rfd = socket(AF_INET, SOCK_STREAM, 0);
     if (rfd < 0 ){
-        log_fatal(":server_start Socket konnte nicht erstellt werden");
+        log_fatal(":server_start Socket konnte nicht erstellt werden Fehler: %s", strerror(errno));
         exit(-1);
     }
     log_info(":server_start Socket wurde erstellt");
@@ -95,7 +95,7 @@ int server_start() {
     server.sin_port = htons(PORT);
     int brt = bind(rfd, (struct sockaddr *) &server, sizeof(server));
     if (brt < 0 ){
-        log_fatal(":server_start Socket konnte nicht gebunden werden");
+        log_fatal(":server_start Socket konnte nicht gebunden werden Fehler: %s", strerror(errno));
         exit(-1);
     }
     log_info(":server_start Socket wurde gebunden");
@@ -104,44 +104,47 @@ int server_start() {
     if(listen(rfd, SERVER_BACKLOG)==0){
         log_info(":server_start Socket lauscht");
     } else{
-        log_fatal(":server_start Socket lauscht nicht, möglicherweise zu viele Clients");
+        log_fatal(":server_start Socket lauscht nicht. Fehler: %s", strerror(errno));
     }
 
-    // Client_Len initialisieren um abstürze zu verhindern.
+    // Client_Len initialisieren um Abstürze zu verhindern.
     client_len = sizeof( (struct sockaddr *) &server);
+
+
     while (schleife) {
         // Verbindung eines Clients wird entgegengenommen
         cfd = accept(rfd, (struct sockaddr *) &client, &client_len);
+
+        // Sonderlocke für ein geregeltes Terminieren der Sockets
         if (cfd < 0 && getProcCount()!=0) {
             exit(-1);
         } else if(cfd <0){
             return 0;
         }
+
+        // Prozess Counter inkrementieren inkl. Log-Ausgabe
         incrementProcCount();
+
         if ((childpid = fork()) == 0) {
             close(rfd);
             do{
+                // Variablen in & out säubern, um saubere Ein- und Ausgaben zu erhalten.
                 clearArray(in);
                 clearArray(out);
 
-                //Socket wird eingelesen
-
+                //Socket wird eingelesen. Wenn es durch ein Signal unterbrochen wird, dann nochmal probieren.
                 do {
                     bytes_read = read(cfd, in, BUFSIZE);
                 } while(errno == EINTR && bytes_read <=0);
-
-
-                log_debug(":Rohdaten: %s", in);
-
-                if (bytes_read <= 0){
-                    close(cfd);
-                    break;
-                }
                 log_debug(":server_start %d bytes empfangen", bytes_read);
+
+                //Interpretation der Daten
                 interface(in, out);
+
+                //Ausgabe auf dem Socket
                 write(cfd, out, strlen(out));
             } while (bytes_read > 0);
-
+            //Routine zum Schließen eines Sockets
             shutdown(cfd, 2);
             close(cfd);
             decrementProcCount();
