@@ -82,8 +82,9 @@ int getSuber(char* key, int pid) {
     int i = 0;
     do {
         log_info(":getSuber gehe in DO rein");
-        if (subliste[i].key == key && subliste[i].pid == pid) {
+        if ((strcmp(subliste[i].key,key) == 0) && (subliste[i].pid == pid)) {
             log_info(":getSuber Subber exestiert schon für den Prozess %i!",pid);
+            unlocksem(sub_semid, SEM_Sub);
             return -2;
         }
         i++;
@@ -132,9 +133,9 @@ int pub(char* key, char* res, int funktion){
         do {
             if (strcmp(subliste[i].key, key) == 0) {
               log_info(":pub Nachricht gesendet an Subber des Key: %s",subliste[i].key);
-                if(funktion == 0){
+                if(funktion == 0 && subliste[i].pid != getpid()){
                     kill(subliste[i].pid, SIGTTIN);
-                } else {
+                } else if(funktion == 1 && subliste[i].pid != getpid()) {
                     kill(subliste[i].pid, SIGTTOU);
                 }
                 log_info(":pub Nachricht gesendet an Subber des Key: %s",subliste[i].key);
