@@ -187,23 +187,27 @@ int desub(char* key){
     }
 }
 
-int getMsgPut(){
-        int i = 0;
-        char out[LENGTH_KEY + LENGTH_VALUE + 7];
-        clearArray(out);
-        while ((strcmp(subliste[i].key, "\0") != 0)){
-            if(subliste[i].pid == getpid()){
-                char value[LENGTH_VALUE];
-                get(subliste[i].key, value);
-                sprintf(out, "PUT:%s:%s\r\n", subliste[i].key, value);
-                if (write(getCFD(), out, strlen(out))<0){
-                    log_error(":getMsgPut Pub war nicht erfolgreich Fehler: %s", strerror(errno));
-                }
-                return 0;
+int getMsgPut() {
+    int i = 0;
+    char out[LENGTH_KEY + LENGTH_VALUE + 7];
+    clearArray(out);
+
+    locksem(sub_semid, SEM_Sub);
+    while ((strcmp(subliste[i].key, "\0") != 0)) {
+        if (subliste[i].pid == getpid()) {
+            char value[LENGTH_VALUE];
+            get(subliste[i].key, value);
+            sprintf(out, "PUT:%s:%s\r\n", subliste[i].key, value);
+            if (write(getCFD(), out, strlen(out)) < 0) {
+                log_error(":getMsgPut Pub war nicht erfolgreich Fehler: %s", strerror(errno));
             }
-            i++;
+            unlocksem(sub_semid, SEM_Sub);
+            return 0;
         }
+        i++;
+    }
     log_error(":getMsgPut Pub war nicht erfolgreich, Sub nicht gefunden.");
+    unlocksem(sub_semid, SEM_Sub);
     return -1;
 }
 
@@ -211,16 +215,20 @@ int getMsgDel(){
     int i = 0;
     char out[LENGTH_VALUE + 18];
     clearArray(out);
+
+    locksem(sub_semid, SEM_Sub);
     while ((strcmp(subliste[i].key, "\0") != 0)){
         if(subliste[i].pid == getpid()){
             sprintf(out, "DEL:%s:key_deleted\r\n", subliste[i].key);
             if (write(getCFD(), out, strlen(out))<0){
                 log_error(":getMsgDel Pub war nicht erfolgreich Fehler: %s", strerror(errno));
             }
+            unlocksem(sub_semid, SEM_Sub);
             return 0;
         }
         i++;
     }
     log_error(":getMsgDel Pub war nicht erfolgreich, Sub nicht gefunden.");
+    unlocksem(sub_semid, SEM_Sub);
     return -1;
 }
