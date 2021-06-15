@@ -21,6 +21,7 @@ struct sockaddr_in client;
 
 int server_stop() {
     //Abfangen des Sonderfalls, dass ein Prozess noch keinen Fork erstellt hat.
+    log_info(":stopServer aufgerufen.");
     if ((childpid == 0) && (getProcCount() == 0)) {
         saveBlockShutdown(getpid());
         close(rfd);

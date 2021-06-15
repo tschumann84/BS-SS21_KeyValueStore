@@ -20,7 +20,6 @@
 bool startsWith(const char *pre, const   char *str);
 int getValue(char* in, char* out);
 int cpyPartOfArray(char* in, char* out, int start, int end);
-bool startsWith(const char *pre, const   char *str);
 
 int interface(char* in, char* out){
     char key[LENGTH_KEY];
@@ -100,6 +99,7 @@ int interface(char* in, char* out){
     else if (startsWith("BEG",in)){
         log_debug(":interface Prozess ID %d", getpid());
 
+        //Exkl. Transaktion aufrufen, wenn keine aktuelle exkl. Transaktion läuft.
         if(beginExklusive(getpid())== 0){
             log_info(":interface Exklusive Transaktion gestartet (BEG)");
             snprintf(out, BUFSIZE, "BEG\r\n");
@@ -117,15 +117,14 @@ int interface(char* in, char* out){
         int returnCodeKey;
         returnCodeKey = getKey(in, key);
 
+        //Mögliche Fehler abfangen
         switch(returnCodeKey){
             case -1: snprintf(out, BUFSIZE, "%s", "command_nonexistent\r\n"); return 0;
             case -2: snprintf(out, BUFSIZE, "%s", "key_too_long\r\n"); return 0;
         }
 
-        int subreturnCode;
-        subreturnCode = sub(key,getpid());
-
-        switch(subreturnCode){
+        //Sub Funktion aufrufen
+        switch(sub(key,getpid())){
             case 0: snprintf(out, BUFSIZE, "SUB:%s\r\n", key); return 0;
             case -1: snprintf(out, BUFSIZE, "%s", "sub_error_occurred\r\n"); return 0;
         }
@@ -136,6 +135,7 @@ int interface(char* in, char* out){
     else if (startsWith("END",in)){
         log_debug(":interface Prozess ID %d", getpid());
 
+        //Exkl. Transaktion beenden, wenn User auch die exkl. Transaktion gestartet hat.
         if(endExklusive(getpid())==0){
             log_info(":interface Exklusive Transaktion beendet (END)");
             snprintf(out, BUFSIZE, "END\r\n");
@@ -147,6 +147,7 @@ int interface(char* in, char* out){
       QUIT
     *******/
     else if (startsWith("QUIT",in)){
+        //Socket beenden
         log_info(":server_start Verbindung geschlossen von: %s:%d", inet_ntoa(getSocketaddrClient().sin_addr),
                  ntohs(getSocketaddrClient().sin_port));
         shutdown(getCFD(), 2);

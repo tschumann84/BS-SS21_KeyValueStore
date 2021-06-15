@@ -27,6 +27,8 @@ int main() {
 
     //Logging Level
     log_set_level(1);
+
+    //Logging in .txt Datei ermöglichen
     remove("logging.txt");
     FILE *fp_test = fopen("logging.txt","w");
     log_add_fp(fp_test, 1);
@@ -35,7 +37,8 @@ int main() {
     sharedStore();
     sub_sharedStore();
     server_start();
-    fclose(fp_test);
 
+    //Bei Stop des Servers logging beenden.
+    fclose(fp_test);
     return 0;
 }
