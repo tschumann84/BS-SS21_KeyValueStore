@@ -1,0 +1,57 @@
+### Sammlung der Returnwerte aller Funktionen
+
+# keyValStore.c
+    int put(char* key, char* value)
+         0 Hinzugefügt
+         1 Liste erstellt und Hinzugefügt
+         2 Key überschrieben
+    int get(char* key, char* res)
+        -2 Key nicht gefunden
+         0 Key gefunden
+    int del(char* key)
+        -1 Key nicht gefunden
+         0 Key gelöscht
+    int beginExklusive(int ID)
+        -1 Exklusive Transaktion belegt
+        0 Exklusive Transaktion erfolgreich gestartet.
+    int endExklusive(int ID)
+        -1 Fehlende Berechtigung
+         0 Exklusive Transaktion erfolgreich beendet.
+# main.c
+    int main()
+        -2 PID vorhanden
+        -1 Port in Nutzung
+         0 Programm ordentlich beendet
+         1 Programm von Benutzer beendet
+# interface.c
+    int interface(char* in, char* out)
+        0 Befehl ausgeführt
+        -1 Befehl nicht vollständig
+        -2 Befehl gar nicht erkannt
+        -3 QUIT Befehl wurde erkannt. Programm wird geschlossen.
+    int getValue(char* in, char* out)
+        0 Value gefunden
+        -1 Es wurde kein Value eingegeben
+        -2 Value ist zu lang
+    int getKey(char* in, char* out)
+        0 Key gefunden
+        -1 Es wurde kein Key eingegeben
+        -2 Key ist zu lang
+#  sub.c
+    int getMsgDel()
+        0 Key gefunden, auf Socket ausgegeben
+        -1 Key nicht gefunden, nichts auf Socket ausgegeben
+    int getMsgPut()
+        0 Key gefunden, auf Socket ausgegeben
+        -1 Key nicht gefunden, nichts auf Socket ausgegeben
+    int desub(char* key)
+        0 Key aus subliste gelöscht
+        -1 Key in subliste nicht gefunden
+    int sub(char* key, int pid)
+        0 subbing gelungen
+        -1 subbing nicht gelungen
+
+# sub.c
+# func/
+## writeFunc.c
+    siehe keyValStore.c -> int put(char* key, char* value)
