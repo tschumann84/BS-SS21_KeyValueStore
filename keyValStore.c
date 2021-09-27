@@ -1,22 +1,3 @@
-/*
-### Datenhaltungskonzept
-
-Key Value Stores bestehen im Grunde aus einer zweispaltigen Tabelle.
-Eine Spalte enthält den Schlüssel die andere den zugehörigen Wert.
-Sowohl die Schlüssel als auch die Werte können von unterschiedlichen Typen sein.
-Laut Aufgabenstellung sollen sie Alphanummerisch sein.
-
-### Festlegungen/Vereinbarungen
-Festlegungen für den Aufbau des Schlüssels:
- - Der Schlüssel enthält keine Leerzeichen.
- - Der Schlüssel enthält keine Sonderzeichen.
- - Der Schlüssel enthält nur Buchstaben und Zahlen.
-
-Festlegungen für den Inhalt der Werte:
- - Werte enthalten keine Leerzeichen.
- - Werte enthalten keine Sonderzeichen.
- - Werte bestehen aus Buchstaben und Zahlen.
-*/
 
 #include "keyValStore.h"
 #include <netinet/in.h>
@@ -29,6 +10,7 @@ int* keyValNum;
 struct keyValKomb* keyValStore;
 int* TAID;
 int* procCount;
+int* welcomeCount;
 struct liste* subshared_memory;
 
 //Leere Variable für get-Funktion
@@ -66,7 +48,7 @@ void sharedStore (void) {
     char* shm_addr;
 
 //### Semaphore erstellen
-    semid = safesemget(IPC_PRIVATE, 4, IPC_CREAT | 0770);
+    semid = safesemget(IPC_PRIVATE, 5, IPC_CREAT | 0770);
     log_debug(":sharedStore Semaphore erstellt semid: %d", semid);
     DeleteSemid = semid;
 
@@ -75,6 +57,7 @@ void sharedStore (void) {
     safesemctl(semid, SEM_Store, SETVAL, sunion);
     safesemctl(semid, SEM_TAID, SETVAL, sunion);
     safesemctl(semid, SEM_DEL, SETVAL, sunion);
+    safesemctl(semid, SEM_WELCOME, SETVAL, sunion);
     sunion.val = 0;
     safesemctl(semid, SEM_Trans, SETVAL, sunion);
 
@@ -104,7 +87,7 @@ void sharedStore (void) {
     keyValNum = (int*) shm_addr;
     *keyValNum = 0;
 
-    // Shared Memory TAID = ?
+    // Shared Memory TAID = TransaktionID des Prozesses mit exklusivem Zugriff
     log_info(":sharedStore TAID im shared Memory erstellen...");
     TAID = (int*) ((void*)shm_addr+sizeof(int));
     *TAID = 0;
@@ -113,6 +96,11 @@ void sharedStore (void) {
     log_info(":sharedStore procCount im shared Memory erstellen...");
     procCount = (int*) ((void*)shm_addr+(2*sizeof(int)));
     *procCount = 0;
+
+    // Shared Memory welcomeCount = Zähler für die Welcome Nachricht aus Aufgabe 5
+    log_info(":sharedStore welcomeCount im shrade Memory erstellen...");
+    welcomeCount = (int*) ((void*)shm_addr+(3*sizeof(int)));
+    *welcomeCount = 0;
 
     // Shared Memory keyValStore = Der Bereich für den KeyValStore
     keyValStore = (struct keyValKomb*) ((void*)shm_addr+(3*sizeof(int)));
@@ -124,35 +112,28 @@ void sharedStore (void) {
     }
     log_debug(":sharedStore *KeyValnum %d", *keyValNum);
 
-    // Shared Memory keyValStore = Der Bereich für den KeyValStore
-//    subshared_memory = (struct liste*) ((void*)shm_addr+(3*sizeof(int))+ 100000);
-//    log_debug(":sharedStore keyValStore: %s", subshared_memory);
-//    if(subshared_memory == (void *) -1) {
-//        log_error(":sharedStore Fehler, keyValStore konnte nicht erstellt werden.");
-//    } else {
-//        log_info(":sharedStore keyValStore erstellt.");
-//    }
-    //log_debug("llllll Größe %i",sizeof(keyValStore));
-    //200*500
-    //log_debug("lllll Größe %i", sizeof(int));
 }
-
 
 int put_in(char* key, char* value) {
     log_info(":put_in Start");
     //Checken ob das Element bereits in der Liste ist.
     int i;
     //log_debug(":put_in locksem(semid, SEM_Store);");
-    locksem(semid, SEM_Store);
     log_info(":put_in Überprüfe ob Key bereits Vorhanden.");
+// KB01 Anfang
+    locksem(semid, SEM_Store);
+// #3a-5 [
+// #3b-6 [
     for (i = 0; i < (*keyValNum); i++) {
         if (strcmp(keyValStore[i].key, key) == 0) {
             strcpy(keyValStore[i].value, value);
             //log_debug(":put_in unlocksem(semid, SEM_Store);");
+//KB01 Ende
             unlocksem(semid, SEM_Store);
             log_info(":put_in Key gefunden und überschrieben.");
             pub(key, value, 0);
             return 0;
+// ] #3b-6
         }
     }
 // Wenn nicht in der Liste, an die letzte Stelle schreiben.
@@ -162,30 +143,39 @@ int put_in(char* key, char* value) {
         strcpy(keyValStore[(*keyValNum)].value, value);
         //log_debug(":put_in unlocksem(semid, SEM_Store);");
         (*keyValNum)++;
+//KB01 Ende
         unlocksem(semid, SEM_Store);
     }
     return 0;
+// ] #3a-5
 }
 
 int put(char* key, char* value) {
     log_info(":put start");
     log_debug(":put key %s | value %s", key, value);
     log_info(":put Überprüfung ob Transaktion aktiv.");
+// #3a-4 [
+// KB02 Anfang
     locksem(semid, SEM_TAID);
     if (*TAID == 0) {
-        log_info(":put Keine Transaktion aktiv, call put.");
+// KB02 Ende
         unlocksem(semid, SEM_TAID);
+        log_info(":put Keine Transaktion aktiv, call put.");
         return put_in(key, value);
+// ] #3a-4
     } else {
         if (*TAID == getpid()) {
             log_info(":put Transaktion aktiv, eigene PID gleich TransaktionID, call put.");
+// KB02 Ende
             unlocksem(semid, SEM_TAID);
             log_debug(":put Eigene PID (%d) == TAID (%d)", getpid(), *TAID);
             return put_in(key, value);
         } else {
             log_info(":put Transaktion aktiv, eigene PID ungleich TransaktionID, wartet auf Transaktionsende.");
+// KB02 Ende
             unlocksem(semid, SEM_TAID);
             log_debug(":put Eigene PID (%d) != TAID (%d)", getpid(), *TAID);
+// KB03 Warten
             waitzero(semid, SEM_Trans);
             return put_in(key, value);
         }
@@ -198,8 +188,10 @@ int get_in(char* key, char* res) {
     //log_info(":get_in Array leer");
     int i = 0;
     //log_debug("locksem(semid, SEM_Store);");
+// KB04 Anfang
     locksem(semid, SEM_Store);
     //log_info(":get_in SEM_Store");
+// #3b-3 [
     if(strcmp(keyValStore[i].key, "\0") != 0) {
         log_info(":get Erstes Element hat den Wert: %s", keyValStore[i].key);
         // Wir suchen in der Kette, ob das Element vorhanden ist.
@@ -208,6 +200,7 @@ int get_in(char* key, char* res) {
                 strcpy(res, keyValStore[i].value);
                 log_info(":get Gesuchter Key wurde gefunden: %s", keyValStore[i].key);
                 log_debug("unlocksem(semid, SEM_Store);");
+// KB04 Ende
                 unlocksem(semid, SEM_Store);
                 return 0;
             }
@@ -215,15 +208,18 @@ int get_in(char* key, char* res) {
             log_info(":get Nächstes Element hat den neuen Wert: %s", keyValStore[i].key);
         } while ((strcmp(keyValStore[i].key, "\0") != 0));
         log_debug("unlocksem(semid, SEM_Store);");
+// KB04 Ende
         unlocksem(semid, SEM_Store);
         log_info(":get Key wurde nicht gefunden Key: %s",key);
         return -2;
     }
     else {
-        log_info(":get LinkedList ist leer");
+        log_info(":get KeyValueStore  ist leer");
         log_debug("unlocksem(semid, SEM_Store);");
+// KB04 Ende
         unlocksem(semid, SEM_Store);
         return -2;
+// ] #3b-3
     }
 }
 
@@ -232,21 +228,28 @@ int get(char* key, char* res) {
     log_info(":get start");
     log_debug(":get key %s | res %s", key, res);
     log_info(":get Überprüfung ob Transaktion aktiv.");
+// KB05 Anfang
     locksem(semid, SEM_TAID);
+// #3b-4 [
     if (*TAID == 0) {
         log_info(":get Keine Transaktion aktiv, call put.");
+// KB05 Ende
         unlocksem(semid, SEM_TAID);
         return get_in(key, res);
+// ] #3b-4
     } else {
         if (*TAID == getpid()) {
             log_info(":get Transaktion aktiv, eigene PID gleich TransaktionID, call put.");
+// KB05 Ende
             unlocksem(semid, SEM_TAID);
             log_debug(":get Eigene PID (%d) == TAID (%d)", getpid(), *TAID);
             return get_in(key, res);
         } else {
             log_info(":get Transaktion aktiv, eigene PID ungleich TransaktionID, wartet auf Transaktionsende.");
+// KB05 Ende
             unlocksem(semid, SEM_TAID);
             log_debug(":get Eigene PID (%d) != TAID (%d)\", getpid(), *TAID");
+// KB06 Warten
             waitzero(semid, SEM_Trans);
             return get_in(key, res);
         }
@@ -258,6 +261,7 @@ int del_in(char* key) {
     int i = 0;
     //log_debug("locksem(semid, SEM_Store);");
     log_info(":del_in suche nach Key.");
+// KB07 Anfang
     locksem(semid, SEM_Store);
     if(strcmp(keyValStore[i].key, "\0") != 0) {
         // Wir suchen in der Kette, ob das Element vorhanden ist.
@@ -265,7 +269,6 @@ int del_in(char* key) {
             if(strcmp(keyValStore[i].key, key) == 0) {
                 log_info(":del_in Key gefunden.");
                 int j = i+1;
-
                 do{
                     strcpy(keyValStore[i].key, keyValStore[j].key);
                     strcpy(keyValStore[i].value, keyValStore[j].value);
@@ -274,6 +277,7 @@ int del_in(char* key) {
                     log_info(":del_in Key gelöscht.");
                 }while ((strcmp(keyValStore[j-1].key, "\0") != 0));
                 (*keyValNum)--;
+// KB07 Ende
                 unlocksem(semid, SEM_Store);
                 pub(key, res, 1);
                 return 0;
@@ -281,12 +285,14 @@ int del_in(char* key) {
             i++;
         } while ((strcmp(keyValStore[i].key, "\0") != 0));
         //log_debug("unlocksem(semid, SEM_Store);");
+// KB07 Ende
         unlocksem(semid, SEM_Store);
         log_info(":del_in Key nicht gefunden.");
         return -1;
     }
     else {
         //log_debug("unlocksem(semid, SEM_Store);");
+// KB07 Ende
         unlocksem(semid, SEM_Store);
         log_info(":del_in keine Keys im Store.");
         return -1;
@@ -297,21 +303,26 @@ int del(char* key) {
     log_info(":del start");
     log_debug(":del key %c | res %c", key, res);
     log_info(":del Überprüfung ob Transaktion aktiv.");
+// KB08 Anfang
     locksem(semid, SEM_TAID);
     if (*TAID == 0) {
         log_info(":del Keine Transaktion aktiv, call put.");
+// KB08 Ende
         unlocksem(semid, SEM_TAID);
         return del_in(key);
     } else {
         if (*TAID == getpid()) {
             log_info(":del Transaktion aktiv, eigene PID gleich TransaktionID, call put.");
+// KB08 Ende
             unlocksem(semid, SEM_TAID);
             log_debug(":del Eigene PID (%d) == TAID (%d)", getpid(), *TAID);
             return del_in(key);
         } else {
             log_info(":del Transaktion aktiv, eigene PID ungleich TransaktionID, wartet auf Transaktionsende.");
+// KB08 Ende
             unlocksem(semid, SEM_TAID);
             log_debug(":del Eigene PID (%d) != TAID (%d)\", getpid(), *TAID");
+// KB09 Warten
             waitzero(semid, SEM_Trans);
             return del_in(key);
         }
@@ -320,13 +331,17 @@ int del(char* key) {
 
 int beginExklusive(int ID) {
     log_debug(":beginExklusive ID = %d", ID);
+// KB10 Anfang
     locksem(semid, SEM_TAID);
     if (*TAID == 0) {
         *TAID = ID;
+// KB11 Anfang
         unlocksem(semid, SEM_Trans);
+// KB10 Ende
         unlocksem(semid, SEM_TAID);
         return 0;
     } else{
+// KB10 Ende
         unlocksem(semid, SEM_TAID);
         return -1;
     }
@@ -334,14 +349,18 @@ int beginExklusive(int ID) {
 
 int endExklusive(int ID) {
     log_debug(":endExklusive ID = %d", ID);
+// KB12 Anfang
     locksem(semid, SEM_TAID);
     if (ID == *TAID) {
         *TAID = 0;
+// KB11 Ende
         locksem(semid, SEM_Trans);
+// KB12 Ende
         unlocksem(semid, SEM_TAID);
         log_debug(":endExklusive Return 0");
         return 0;
     } else{
+// KB12 Ende
         unlocksem(semid, SEM_TAID);
         log_debug(":endExklusive Return -1");
         return -1;
@@ -349,48 +368,75 @@ int endExklusive(int ID) {
 };
 
 int saveBlockShutdown(int ID) {
+// KB13 Warten
     waitzero(semid, SEM_Trans);
+// KB14 Anfang
     locksem(semid, SEM_TAID);
-
     *TAID = ID;
+// KB14 Ende
     unlocksem(semid, SEM_TAID);
+// KB15 Anfang
     unlocksem(semid, SEM_Trans);
+// KB16 Anfang
     locksem(semid, SEM_Store);
     return 0;
 };
 
 int saveUnblockShutdown(int ID) {
+// KB17 Anfang
     locksem(semid, SEM_TAID);
-
     if (ID == *TAID) {
         *TAID = 0;
+// KB15 Ende
         locksem(semid, SEM_Trans);
+// KB17 Ende
         unlocksem(semid, SEM_TAID);
+// KB16 Ende
         unlocksem(semid, SEM_Store);
         return 0;
     } else {
+// KB17 Ende
         unlocksem(semid, SEM_TAID);
         return -1;
     }
 };
 
+int welcome(){
+    log_info(":welcome Start");
+    int count;
+    log_info(":welcome count angelegt %i", count);
+    locksem(semid, SEM_WELCOME);
+    log_info(":welcome locksem");
+    *welcomeCount = *welcomeCount+1;
+    count = *welcomeCount;
+    log_info(":welcome count = %i", count);
+    unlocksem(semid, SEM_WELCOME);
+    return count;
+}
+
 void incrementProcCount(){
+// KB18 Anfang
     locksem(semid, SEM_DEL);
     *procCount = *procCount+1;
     log_info(":server_start Verbindung akzeptiert von: %s:%d. Aktuell laufende Sockets: %i", inet_ntoa(getSocketaddrClient().sin_addr), ntohs(getSocketaddrClient().sin_port),*procCount);
+// KB18 Ende
     unlocksem(semid, SEM_DEL);
 }
 
 void decrementProcCount(){
+// KB19 Anfang
     locksem(semid, SEM_DEL);
     *procCount = *procCount-1;
     log_warn(":server_start %i Socket geschlossen. Aktuell noch laufende Sockets: %i", ntohs(getSocketaddrClient().sin_port), *procCount);
+// KB 19 Ende
     unlocksem(semid, SEM_DEL);
 }
 
 int getProcCount(){
+// KB20 Anfang
     locksem(semid, SEM_DEL);
     int ergebnis = *procCount;
+// KB20 Ende
     unlocksem(semid, SEM_DEL);
     return ergebnis;
 }

@@ -78,25 +78,30 @@ void sub_sharedStore (void) {
     log_debug(":sub_sharedStore *tatsaechliche_anzahl_subs %d", *tatsaechliche_anzahl_subs);
 }
 int getSuber(char* key, int pid) {
+// KB21 Anfang
     locksem(sub_semid, SEM_Sub);
     int i = 0;
     do {
         log_info(":getSuber gehe in DO rein");
         if ((strcmp(subliste[i].key,key) == 0) && (subliste[i].pid == pid)) {
             log_info(":getSuber Subber exestiert schon für den Prozess %i!",pid);
+// KB21 Ende
             unlocksem(sub_semid, SEM_Sub);
             return -2;
         }
         i++;
     } while ((strcmp(subliste[i].key, "\0") != 0));
     log_info(":getSuber Sub existiert noch nicht für den Prozess %i",pid);
+// KB21 Ende
     unlocksem(sub_semid, SEM_Sub);
     return 0;
 }
 
 int sub(char* key, int pid) {
     log_info(":sub start");
+// #3b-2 [
     if (getSuber(key, pid) == 0) {
+// KB22 Anfang
         locksem(sub_semid, SEM_Sub);
         if (((*tatsaechliche_anzahl_subs) + 1) < ANZAHLSUBS) {
             log_info(":sub Subplätze noch frei");
@@ -108,15 +113,19 @@ int sub(char* key, int pid) {
 
                 (*tatsaechliche_anzahl_subs)++;
                 log_info(":sub Subbing ist gelungen!");
+// KB22 Ende
                 unlocksem(sub_semid, SEM_Sub);
                 return 0;
             } else {
                 log_info(":sub Key existiert nicht. Kein Sub möglich!");
+// KB22 Ende
                 unlocksem(sub_semid, SEM_Sub);
                 return -1;
+// ] #3b-2
             }
         } else {
             log_info(":sub Maximale Anzahl an Subs erreicht!");
+// KB22 Ende
             unlocksem(sub_semid, SEM_Sub);
             return -1;
         }
@@ -127,8 +136,10 @@ int sub(char* key, int pid) {
 
 int pub(char* key, char* res, int funktion){
     log_info(":pub start");
+// KB23 Anfang
     locksem(sub_semid,SEM_Sub);
     int i = 0;
+// #3b-7 [
     if(strcmp(subliste[i].key, "\0") != 0) {
         do {
             if (strcmp(subliste[i].key, key) == 0) {
@@ -142,6 +153,8 @@ int pub(char* key, char* res, int funktion){
             }
             i++;
         }while ((strcmp(subliste[i].key, "\0") != 0));
+// ] #3b-7
+// KB23 Ende
         unlocksem(sub_semid,SEM_Sub);
         if(funktion == 1){
             desub(key);
@@ -150,6 +163,7 @@ int pub(char* key, char* res, int funktion){
     }
     else {
         log_info(":pub Subliste war Leer, keine Nachricht gesendet");
+// KB23 Ende
         unlocksem(sub_semid,SEM_Sub);
         return 0;
     }
@@ -157,6 +171,7 @@ int pub(char* key, char* res, int funktion){
 
 int desub(char* key){
     log_info(":desub start");
+// KB24 Anfang
     locksem(sub_semid,SEM_Sub);
     int i = 0;
     log_info(":desub suche nach Key.");
@@ -178,11 +193,13 @@ int desub(char* key){
             }
             i++;
         } while ((strcmp(subliste[i].key, "\0") != 0));
+// KB24 Ende
        unlocksem(sub_semid,SEM_Sub);
         return 0;
     }
     else {
         log_info(":desub keine Keys in Subliste.");
+// KB24 Ende
         unlocksem(sub_semid,SEM_Sub);
         return -1;
     }
@@ -192,7 +209,7 @@ int getMsgPut() {
     int i = 0;
     char out[LENGTH_KEY + LENGTH_VALUE + 7];
     clearArray(out);
-
+// KB25 Anfang
     locksem(sub_semid, SEM_Sub);
     while ((strcmp(subliste[i].key, "\0") != 0)) {
         if (subliste[i].pid == getpid()) {
@@ -202,12 +219,14 @@ int getMsgPut() {
             if (write(getCFD(), out, strlen(out)) < 0) {
                 log_error(":getMsgPut Pub war nicht erfolgreich Fehler: %s", strerror(errno));
             }
+// KB25 Ende
             unlocksem(sub_semid, SEM_Sub);
             return 0;
         }
         i++;
     }
     log_error(":getMsgPut Pub war nicht erfolgreich, Sub nicht gefunden.");
+// KB25 Ende
     unlocksem(sub_semid, SEM_Sub);
     return -1;
 }
@@ -216,7 +235,7 @@ int getMsgDel(){
     int i = 0;
     char out[LENGTH_VALUE + 18];
     clearArray(out);
-
+// KB26 Anfang
     locksem(sub_semid, SEM_Sub);
     while ((strcmp(subliste[i].key, "\0") != 0)){
         if(subliste[i].pid == getpid()){
@@ -224,12 +243,14 @@ int getMsgDel(){
             if (write(getCFD(), out, strlen(out))<0){
                 log_error(":getMsgDel Pub war nicht erfolgreich Fehler: %s", strerror(errno));
             }
+// KB26 Ende
             unlocksem(sub_semid, SEM_Sub);
             return 0;
         }
         i++;
     }
     log_error(":getMsgDel Pub war nicht erfolgreich, Sub nicht gefunden.");
+// KB26 Ende
     unlocksem(sub_semid, SEM_Sub);
     return -1;
 }

@@ -4,7 +4,7 @@
 #include "keyValStore.h"
 #include "server.h"
 #include "sub.h"
-
+// #3a-1 [
 int main() {
     // Signal Handler für das kontrollierte Herunterfahren
     struct sigaction action;
@@ -13,11 +13,13 @@ int main() {
     sigaction(SIGTERM, &action, NULL);
     sigaction(SIGINT, &action, NULL);
 
+// #3b-8 [
     // Signal Handler für das Publishen eines PUT Befehls
     struct sigaction sigput;
     memset(&sigput, 0, sizeof(struct sigaction));
     sigput.sa_handler = (__sighandler_t) getMsgPut;
     sigaction(SIGTTIN, &sigput, NULL);
+// ] #3b-8
 
     // Signal Handler für das Publishen eines DEL Befehls
     struct sigaction sigdel;
@@ -37,7 +39,7 @@ int main() {
     sharedStore();
     sub_sharedStore();
     server_start();
-
+// ] #3a-1
     //Bei Stop des Servers logging beenden.
     fclose(fp_test);
     return 0;

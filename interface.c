@@ -21,7 +21,7 @@ bool startsWith(const char *pre, const   char *str);
 int getValue(char* in, char* out);
 int cpyPartOfArray(char* in, char* out, int start, int end);
 
-int interface(char* in, char* out){
+int  interface(char* in, char* out){
     char key[LENGTH_KEY];
     char value[LENGTH_VALUE];
     char resValue[LENGTH_VALUE];
@@ -48,6 +48,7 @@ int interface(char* in, char* out){
             case 0: snprintf(out, BUFSIZE, "GET:%s:%s\r\n",key, resValue); return 0;
         }
     }
+// #3a-3 [
     /********
        PUT
     *******/
@@ -72,6 +73,7 @@ int interface(char* in, char* out){
         //Ausgabe
         snprintf(out, BUFSIZE, "PUT:%s:%s\r\n", key, value);
     }
+// ] #3a-3
     /********
        DEL
     *******/
@@ -108,6 +110,7 @@ int interface(char* in, char* out){
         }
         return 0;
     }
+// #3b-1 [
     /********
        SUB
     *******/
@@ -129,6 +132,7 @@ int interface(char* in, char* out){
             case -1: snprintf(out, BUFSIZE, "%s", "sub_error_occurred\r\n"); return 0;
         }
     }
+// ] #3b-1
     /********
        END
     *******/
@@ -167,6 +171,7 @@ int interface(char* in, char* out){
     return 0;
 }
 
+// #3b-5 [
 int getKey(char* in, char* out){
     // Schleife fängt ab 4 an, da die ersten Zeichen immer der Methodenaufruf sind.
     const int keyAnfang = 4;
@@ -235,6 +240,7 @@ int getValue(char* in, char* out){
     log_debug(":getValue folgender Value wurde ermittelt: %s", out);
     return 0;
 }
+// ] #3b-5
 
 int cpyPartOfArray(char* in, char* out, int start, int end){
     clearArray(out);

@@ -76,7 +76,7 @@ int server_start() {
 
     // Anzahl der Bytes, die der Client geschickt hat
     int bytes_read;
-
+// #3a-2 [
     // Socket erstellen
     rfd = socket(AF_INET, SOCK_STREAM, 0);
     if (rfd < 0 ){
@@ -108,43 +108,48 @@ int server_start() {
     } else{
         log_fatal(":server_start Socket lauscht nicht. Fehler: %s", strerror(errno));
     }
-
+// ] #3a-2
     // Client_Len initialisieren um Abstürze zu verhindern.
     client_len = sizeof( (struct sockaddr *) &server);
 
-
+// #2a-1 [
     while (schleife) {
         // Verbindung eines Clients wird entgegengenommen
+// #1a-1 [
         cfd = accept(rfd, (struct sockaddr *) &client, &client_len);
-
+// ] #1a-1
         // Sonderlocke für ein geregeltes Terminieren der Sockets
         if (cfd < 0 && getProcCount()!=0) {
             exit(-1);
         } else if(cfd <0){
             return 0;
         }
-
         // Prozess Counter inkrementieren inkl. Log-Ausgabe
         incrementProcCount();
 
         if ((childpid = fork()) == 0) {
-            close(rfd);
+// ] #2a-1
+            snprintf(out, BUFSIZE, "Welcome Nr %d\r\n", welcome());
+            write(cfd, out, strlen(out));
             do{
                 // Variablen in & out säubern, um saubere Ein- und Ausgaben zu erhalten.
                 clearArray(in);
                 clearArray(out);
-
+// #2a-2 [
                 //Socket wird eingelesen. Wenn es durch ein Signal unterbrochen wird, dann nochmal probieren.
                 do {
+// #1a-2 [
                     bytes_read = read(cfd, in, BUFSIZE);
+// ] #1a-2
                 } while(errno == EINTR && bytes_read <=0);
                 log_debug(":server_start %d bytes empfangen", bytes_read);
-
+// #2a-3 [
                 //Interpretation der Daten
                 interface(in, out);
-
+// ] #2a-2
                 //Ausgabe auf dem Socket
                 write(cfd, out, strlen(out));
+// ] #2a-3
             } while (bytes_read > 0);
             //Routine zum Schließen eines Sockets
             shutdown(cfd, 2);

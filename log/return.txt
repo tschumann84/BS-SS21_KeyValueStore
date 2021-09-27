@@ -3,8 +3,8 @@
 # keyValStore.c
     int put(char* key, char* value)
          0 Hinzugefügt
-         1 Liste erstellt und Hinzugefügt
-         2 Key überschrieben
+         0 Liste erstellt und Hinzugefügt
+         0 Key überschrieben
     int get(char* key, char* res)
         -2 Key nicht gefunden
          0 Key gefunden
