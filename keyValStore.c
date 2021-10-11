@@ -402,14 +402,10 @@ int saveUnblockShutdown(int ID) {
 };
 
 int welcome(){
-    log_info(":welcome Start");
     int count;
-    log_info(":welcome count angelegt %i", count);
     locksem(semid, SEM_WELCOME);
-    log_info(":welcome locksem");
     *welcomeCount = *welcomeCount+1;
     count = *welcomeCount;
-    log_info(":welcome count = %i", count);
     unlocksem(semid, SEM_WELCOME);
     return count;
 }
